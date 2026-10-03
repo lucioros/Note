@@ -1,0 +1,2336 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=yes">
+    <title>SpesaFlow</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        body {
+            font-family: -apple-system, 'Segoe UI', system-ui, sans-serif;
+            background: #f0f2f5;
+            padding: 10px;
+            overflow-x: hidden;
+        }
+        .app-container {
+            max-width: 100%;
+            margin: 0 auto;
+        }
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 14px;
+            padding: 0 2px;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .logo span { font-size: 24px; }
+        h1 { font-size: 1.3rem; color: #1a73e8; }
+        .header-actions {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+        }
+        .btn-header {
+            background: rgba(26,115,232,0.1);
+            border: none;
+            padding: 6px 12px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 0.7rem;
+            min-height: 36px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .btn-header:active { transform: scale(0.95); }
+        .btn-backup { background: #e6f4ea; color: #137333; }
+        .btn-restore { background: #fce8e6; color: #d93025; }
+        .btn-reset { background: #f1f3f4; color: #5f6368; }
+
+        /* CARRELLO */
+        .cart-area {
+            background: white;
+            border-radius: 20px;
+            padding: 14px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            border: 2px solid #1a73e8;
+            min-height: 80px;
+        }
+        .cart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .cart-title {
+            font-weight: 600;
+            font-size: 1rem;
+            color: #1a73e8;
+        }
+        .cart-actions {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .cart-count {
+            background: #e8f0fe;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+        }
+        .finish-btn {
+            background: #34a853;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            padding: 6px 12px;
+            cursor: pointer;
+            min-height: 32px;
+        }
+        .finish-btn:active { transform: scale(0.95); }
+        .clear-cart-btn {
+            background: none;
+            border: none;
+            color: #d93025;
+            font-size: 0.9rem;
+            cursor: pointer;
+            padding: 4px 8px;
+            min-width: 36px;
+            min-height: 32px;
+        }
+        .cart-items {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            min-height: 50px;
+        }
+        .cart-group {
+            background: #f8f9fa;
+            border-radius: 14px;
+            overflow: hidden;
+            margin-bottom: 6px;
+        }
+        .cart-group-header {
+            background: #e8eaed;
+            padding: 8px 12px;
+            font-weight: 600;
+            font-size: 0.8rem;
+            color: #1a73e8;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .cart-group-header .group-count {
+            font-weight: 400;
+            color: #5f6368;
+            font-size: 0.7rem;
+        }
+        .cart-group-items { padding: 4px; }
+        .cart-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: white;
+            padding: 8px 10px;
+            border-radius: 12px;
+            border-left: 4px solid #1a73e8;
+            gap: 8px;
+            width: 100%;
+            flex-wrap: nowrap;
+            min-height: 48px;
+            margin-bottom: 2px;
+        }
+        .cart-item:last-child { margin-bottom: 0; }
+        .cart-item .item-check {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: 2px solid #1a73e8;
+            background: white;
+            color: white;
+            font-size: 0.9rem;
+            font-weight: 700;
+            cursor: pointer;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .cart-item .item-name {
+            font-size: 0.85rem;
+            font-weight: 500;
+            flex: 1 1 auto;
+            min-width: 50px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            cursor: pointer;
+            padding: 6px 0;
+        }
+        .cart-item.done { border-left-color: #34a853; background: #f6fbf7; }
+        .cart-item.done .item-check { background: #34a853; border-color: #34a853; }
+        .cart-item.done .item-name { text-decoration: line-through; color: #9aa0a6; }
+        .cart-item.done .item-qty { opacity: 0.5; }
+        .cart-item .item-qty {
+            font-size: 0.75rem;
+            background: #e8f0fe;
+            padding: 3px 8px;
+            border-radius: 20px;
+            color: #1a73e8;
+            font-weight: 600;
+            cursor: pointer;
+            border: 2px solid transparent;
+            min-width: 34px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+        .cart-item .item-qty:active {
+            background: #d2e3fc;
+            transform: scale(0.95);
+        }
+        .cart-item .btn-remove-cart {
+            background: none;
+            border: none;
+            font-size: 0.9rem;
+            color: #9aa0a6;
+            cursor: pointer;
+            padding: 4px 6px;
+            min-width: 32px;
+            min-height: 32px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .cart-item .btn-remove-cart:active {
+            color: #d93025;
+            transform: scale(0.9);
+        }
+        .cart-empty {
+            text-align: center;
+            color: #9aa0a6;
+            padding: 16px;
+            font-size: 0.85rem;
+        }
+
+        /* MODALE QUANTITÀ */
+        .qty-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(4px);
+            padding: 20px;
+        }
+        .qty-modal {
+            background: white;
+            border-radius: 28px;
+            padding: 28px 24px;
+            max-width: 340px;
+            width: 100%;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.3);
+            animation: modalIn 0.25s ease-out;
+        }
+        @keyframes modalIn {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        .qty-modal h3 {
+            font-size: 1.1rem;
+            margin-bottom: 6px;
+            color: #202124;
+            word-break: break-word;
+        }
+        .qty-modal .product-name {
+            color: #1a73e8;
+            font-weight: 600;
+        }
+        .qty-modal .source-info {
+            font-size: 0.75rem;
+            color: #5f6368;
+            margin-bottom: 14px;
+        }
+        .qty-modal .qty-label {
+            font-size: 0.8rem;
+            color: #5f6368;
+            margin-bottom: 4px;
+        }
+        .qty-modal .qty-hint {
+            font-size: 0.65rem;
+            color: #5f6368;
+            text-align: center;
+            margin-bottom: 6px;
+        }
+        .qty-modal .qty-input-group {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin: 14px 0;
+        }
+        .qty-modal .qty-input-group button {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            border: none;
+            background: #e8eaed;
+            font-size: 1.3rem;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .qty-modal .qty-input-group button:active { transform: scale(0.95); }
+        .qty-modal .qty-input-group input {
+            width: 70px;
+            height: 44px;
+            text-align: center;
+            font-size: 1.2rem;
+            border: 2px solid #dadce0;
+            border-radius: 16px;
+            outline: none;
+            font-weight: 600;
+        }
+        .qty-modal .qty-input-group input:focus { border-color: #1a73e8; }
+        .qty-modal .modal-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 16px;
+        }
+        .qty-modal .modal-actions button {
+            flex: 1;
+            padding: 10px;
+            border-radius: 30px;
+            border: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        .qty-modal .modal-actions .btn-cancel { background: #f1f3f4; color: #5f6368; }
+        .qty-modal .modal-actions .btn-confirm { background: #1a73e8; color: white; }
+        .qty-modal .modal-actions .btn-delete { background: #fce8e6; color: #d93025; }
+
+        /* CATEGORIE */
+        .categories-board {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .category-column {
+            background: #eef2f5;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+        }
+        .category-header {
+            padding: 14px 16px;
+            background: white;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            user-select: none;
+            transition: 0.2s;
+            min-height: 52px;
+        }
+        .category-header:active { background: #f5f5f5; }
+        .category-header .category-toggle {
+            font-size: 1rem;
+            color: #5f6368;
+            transition: 0.2s;
+            min-width: 24px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+        .category-header .category-toggle.collapsed { transform: rotate(-90deg); }
+        .category-title {
+            font-weight: 600;
+            font-size: 1rem;
+            border: none;
+            background: transparent;
+            outline: none;
+            flex: 1;
+            min-width: 0;
+            font-family: inherit;
+            padding: 4px;
+            cursor: pointer;
+            min-height: 36px;
+        }
+        .category-actions {
+            display: flex;
+            gap: 2px;
+            flex-shrink: 0;
+        }
+        .icon-btn {
+            background: none;
+            border: none;
+            font-size: 1rem;
+            cursor: pointer;
+            padding: 6px;
+            border-radius: 30px;
+            min-width: 40px;
+            min-height: 40px;
+        }
+        .category-body { padding-top: 6px; }
+        .category-body.collapsed { display: none; }
+        .subcategory-list {
+            background: #f8f9fc;
+            margin: 0 6px 6px 6px;
+            border-radius: 16px;
+            overflow: hidden;
+        }
+        .subcategory-item {
+            background: white;
+            margin: 4px 4px;
+            border-radius: 14px;
+            padding: 6px 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            min-height: 44px;
+        }
+        .subcategory-item .subcategory-toggle {
+            font-size: 0.9rem;
+            color: #5f6368;
+            cursor: pointer;
+            padding: 6px 4px;
+            flex-shrink: 0;
+        }
+        .subcat-name {
+            flex: 1;
+            min-width: 0;
+            border: none;
+            background: transparent;
+            font-size: 0.8rem;
+            outline: none;
+            padding: 4px;
+            min-height: 32px;
+        }
+        .subcategory-body.collapsed { display: none; }
+        .loose-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #5f6368;
+            padding: 6px 14px 2px 14px;
+        }
+        .notes-container {
+            min-height: 30px;
+            padding: 4px 6px;
+            border-radius: 14px;
+        }
+        .notes-container.drag-over { outline: 2px dashed #1a73e8; }
+
+        /* LISTE */
+        .note-card {
+            background: white;
+            border-radius: 16px;
+            margin-bottom: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            overflow: hidden;
+        }
+        .note-card.dragging { opacity: 0.4; }
+        .note-header {
+            display: flex;
+            justify-content: flex-end;
+            padding: 4px 10px 0 10px;
+        }
+        .delete-note {
+            background: none;
+            border: none;
+            font-size: 0.9rem;
+            opacity: 0.3;
+            cursor: pointer;
+            padding: 6px;
+            min-width: 40px;
+            min-height: 40px;
+        }
+        .note-body { padding: 2px 10px 10px 10px; }
+        .list-empty {
+            color: #aaa;
+            padding: 6px;
+            text-align: center;
+            font-size: 0.75rem;
+        }
+        .empty-notes {
+            text-align: center;
+            color: #9aa0a6;
+            padding: 12px;
+            font-size: 0.75rem;
+        }
+        .list-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin: 4px 0;
+            padding: 6px 8px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            border: 1px solid transparent;
+            transition: 0.1s;
+            min-height: 44px;
+        }
+        .list-item.in-cart {
+            background: #e8f0fe;
+            border-color: #1a73e8;
+        }
+        .list-text {
+            flex: 1;
+            min-width: 0;
+            border: none;
+            background: transparent;
+            font-size: 0.8rem;
+            outline: none;
+            padding: 4px;
+            min-height: 28px;
+        }
+        .in-cart-text { color: #1a73e8; font-weight: 500; }
+        .btn-cart-add {
+            background: #1a73e8;
+            border: none;
+            border-radius: 30px;
+            color: white;
+            font-size: 0.75rem;
+            padding: 4px 10px;
+            cursor: pointer;
+            min-width: 36px;
+            min-height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.15s;
+            flex-shrink: 0;
+        }
+        .btn-cart-add:active { transform: scale(0.92); }
+        .btn-cart-add.in-cart { background: #34a853; font-weight: 600; }
+        .remove-item {
+            background: none;
+            border: none;
+            font-size: 0.9rem;
+            color: #9aa0a6;
+            cursor: pointer;
+            padding: 4px 6px;
+            min-width: 32px;
+            min-height: 32px;
+            flex-shrink: 0;
+        }
+        .add-item-row {
+            display: flex;
+            gap: 6px;
+            margin-top: 6px;
+        }
+        .add-item-row input {
+            flex: 1;
+            min-width: 0;
+            border: 1px solid #ddd;
+            border-radius: 25px;
+            padding: 8px 12px;
+            font-size: 0.8rem;
+            outline: none;
+            min-height: 40px;
+        }
+        .add-item-row button {
+            background: #e8eaed;
+            border: none;
+            border-radius: 25px;
+            padding: 6px 16px;
+            cursor: pointer;
+            font-weight: 500;
+            min-width: 50px;
+            min-height: 40px;
+        }
+        .add-category-btn {
+            background: white;
+            border: 2px dashed #dadce0;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 16px;
+            color: #5f6368;
+            cursor: pointer;
+            min-height: 52px;
+        }
+        .add-note-btn {
+            background: transparent;
+            border: 1px dashed #dadce0;
+            border-radius: 30px;
+            padding: 6px 10px;
+            width: 100%;
+            cursor: pointer;
+            margin-top: 4px;
+            color: #5f6368;
+            font-size: 0.7rem;
+            min-height: 36px;
+        }
+
+        /* SCHEDE (TAB) */
+        .tabs {
+            display: flex;
+            gap: 4px;
+            background: #e4e7eb;
+            padding: 4px;
+            border-radius: 30px;
+            margin-bottom: 14px;
+        }
+        .tab-btn {
+            flex: 1;
+            border: none;
+            background: transparent;
+            padding: 8px 10px;
+            border-radius: 30px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            font-family: inherit;
+            color: #5f6368;
+            min-height: 42px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .tab-btn.active {
+            background: white;
+            color: #1a73e8;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.12);
+        }
+        .tab-badge {
+            background: #1a73e8;
+            color: white;
+            border-radius: 20px;
+            font-size: 0.65rem;
+            padding: 2px 7px;
+            min-width: 20px;
+            text-align: center;
+        }
+        .tab-badge.late { background: #d93025; }
+
+        /* COSE DA FARE */
+        .todo-add {
+            background: white;
+            border-radius: 20px;
+            padding: 12px;
+            margin-bottom: 14px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            border: 2px solid #1a73e8;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .todo-add input {
+            border: 1px solid #ddd;
+            border-radius: 25px;
+            padding: 8px 14px;
+            font-size: 0.9rem;
+            font-family: inherit;
+            outline: none;
+            min-height: 42px;
+            min-width: 0;
+            width: 100%;
+            background: white;
+            color: #202124;
+        }
+        .todo-add input:focus { border-color: #1a73e8; }
+        .todo-add-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        .todo-add-row label {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.75rem;
+            color: #5f6368;
+        }
+        .todo-add-row button {
+            background: #1a73e8;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            padding: 8px 16px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            min-height: 42px;
+            flex-shrink: 0;
+        }
+        .todo-add-row button:active { transform: scale(0.95); }
+        .todo-group-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #5f6368;
+            padding: 6px 6px 4px 6px;
+            min-height: 34px;
+        }
+        .todo-group-header.late { color: #d93025; }
+        .todo-group-header.today { color: #1a73e8; }
+        .todo-group-header button {
+            background: none;
+            border: none;
+            color: #d93025;
+            font-size: 0.7rem;
+            cursor: pointer;
+            padding: 6px 8px;
+        }
+        .todo-group { margin-bottom: 10px; }
+        .todo-card {
+            background: white;
+            border-radius: 16px;
+            padding: 8px 8px 8px 10px;
+            margin-bottom: 6px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            border-left: 4px solid #dadce0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-height: 56px;
+        }
+        .todo-card.late { border-left-color: #d93025; }
+        .todo-card.today { border-left-color: #1a73e8; }
+        .todo-card.next { border-left-color: #f9ab00; }
+        .todo-card.done { border-left-color: #34a853; background: #f6fbf7; }
+        .todo-check {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: 2px solid #1a73e8;
+            background: white;
+            color: white;
+            font-size: 0.9rem;
+            font-weight: 700;
+            cursor: pointer;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .todo-card.done .todo-check { background: #34a853; border-color: #34a853; }
+        .todo-main {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .todo-text {
+            border: none;
+            background: transparent;
+            font-size: 0.9rem;
+            font-weight: 500;
+            font-family: inherit;
+            color: #202124;
+            outline: none;
+            padding: 4px;
+            width: 100%;
+            min-width: 0;
+        }
+        .todo-card.done .todo-text { text-decoration: line-through; color: #9aa0a6; }
+        .todo-meta {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+        }
+        .todo-chip {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            font-size: 0.7rem;
+            font-weight: 600;
+            background: #f1f3f4;
+            color: #5f6368;
+            padding: 4px 10px;
+            border-radius: 20px;
+            cursor: pointer;
+            overflow: hidden;
+        }
+        .todo-chip.empty { background: transparent; border: 1px dashed #dadce0; font-weight: 400; color: #9aa0a6; }
+        .todo-card.late .todo-chip { background: #fce8e6; color: #d93025; }
+        .todo-card.today .todo-chip { background: #e8f0fe; color: #1a73e8; }
+        .todo-card.next .todo-chip { background: #fef7e0; color: #b06000; }
+        .todo-chip input {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+            border: none;
+            padding: 0;
+        }
+        .todo-date-clear {
+            background: none;
+            border: none;
+            color: #9aa0a6;
+            font-size: 0.75rem;
+            cursor: pointer;
+            min-width: 28px;
+            min-height: 28px;
+        }
+        .todo-gcal {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #1a73e8;
+            text-decoration: none;
+            border: 1px solid #d2e3fc;
+            border-radius: 20px;
+            padding: 3px 10px;
+            margin-left: 2px;
+            white-space: nowrap;
+        }
+        .todo-gcal:active { background: #e8f0fe; }
+        .todo-empty {
+            text-align: center;
+            color: #9aa0a6;
+            padding: 24px 12px;
+            font-size: 0.85rem;
+        }
+
+        /* TOAST */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #323232;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 30px;
+            font-size: 0.85rem;
+            z-index: 2000;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+            animation: toastIn 0.3s ease-out;
+            max-width: 90%;
+            text-align: center;
+        }
+        .toast.success { background: #137333; }
+        .toast.error { background: #d93025; }
+        @keyframes toastIn {
+            from { transform: translateX(-50%) translateY(30px); opacity: 0; }
+            to { transform: translateX(-50%) translateY(0); opacity: 1; }
+        }
+
+        #fileInput { display: none; }
+
+        @media (max-width: 480px) {
+            body { padding: 6px; }
+            .header-actions { gap: 3px; }
+            .btn-header { font-size: 0.6rem; padding: 4px 10px; min-height: 32px; }
+            .cart-item .item-name { font-size: 0.8rem; }
+            .cart-item .item-qty { font-size: 0.7rem; }
+            .category-header { padding: 10px 12px; min-height: 44px; }
+            .category-title { font-size: 0.9rem; }
+            .list-item { padding: 4px 6px; min-height: 38px; gap: 4px; }
+            .btn-cart-add { font-size: 0.65rem; padding: 3px 8px; min-width: 30px; min-height: 28px; }
+            .qty-modal { padding: 20px 16px; }
+            .qty-modal .qty-input-group button { width: 38px; height: 38px; font-size: 1.1rem; }
+            .qty-modal .qty-input-group input { width: 60px; height: 38px; font-size: 1rem; }
+            .cart-group-header { font-size: 0.75rem; padding: 6px 10px; }
+        }
+
+        /* ---- aggiunte: avvisi, ricerca, note, finestre ---- */
+        .banner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            width: 100%;
+            border: none;
+            border-radius: 16px;
+            padding: 10px 12px;
+            margin-bottom: 12px;
+            font-size: 0.78rem;
+            font-family: inherit;
+            text-align: left;
+        }
+        .banner-backup { background: #fef7e0; color: #7a4f01; }
+        .banner-actions { display: flex; gap: 4px; flex-shrink: 0; }
+        .banner-actions button {
+            border: none;
+            border-radius: 20px;
+            padding: 6px 10px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            cursor: pointer;
+            background: white;
+            color: #7a4f01;
+            min-height: 32px;
+        }
+        .banner-todo { background: #e8f0fe; color: #1a73e8; font-weight: 600; cursor: pointer; min-height: 40px; }
+        .banner-todo.late { background: #fce8e6; color: #d93025; }
+        .share-btn {
+            background: #e8f0fe;
+            color: #1a73e8;
+            border: none;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            padding: 6px 12px;
+            cursor: pointer;
+            min-height: 32px;
+        }
+        .share-btn:active { transform: scale(0.95); }
+        .search-row { position: relative; margin-bottom: 12px; }
+        .search-row input {
+            width: 100%;
+            border: 1px solid #dadce0;
+            border-radius: 25px;
+            padding: 10px 42px 10px 14px;
+            font-size: 0.9rem;
+            font-family: inherit;
+            min-height: 42px;
+            outline: none;
+            background: white;
+            color: #202124;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+        .search-row input:focus { border-color: #1a73e8; }
+        .search-row input::-webkit-search-cancel-button { display: none; }
+        .search-row button {
+            position: absolute;
+            right: 4px;
+            top: 50%;
+            transform: translateY(-50%);
+            border: none;
+            background: none;
+            min-width: 36px;
+            min-height: 36px;
+            color: #5f6368;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        .sub-count {
+            font-size: 0.65rem;
+            color: #5f6368;
+            background: #f1f3f4;
+            border-radius: 20px;
+            padding: 2px 8px;
+            flex-shrink: 0;
+        }
+        .list-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+        .list-main .list-text { width: 100%; flex: none; }
+        .list-note, .item-note {
+            font-size: 0.68rem;
+            font-weight: 400;
+            color: #5f6368;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .list-note { padding: 0 4px 2px 4px; }
+        .item-note { display: block; text-decoration: none; }
+        .btn-cart-add { white-space: nowrap; }
+        .modal-field { display: block; font-size: 0.8rem; color: #5f6368; margin-top: 10px; }
+        .modal-field input, .modal-field select {
+            display: block;
+            width: 100%;
+            margin-top: 4px;
+            border: 2px solid #dadce0;
+            border-radius: 14px;
+            padding: 8px 12px;
+            font-size: 0.9rem;
+            font-family: inherit;
+            outline: none;
+            background: white;
+            color: #202124;
+            min-height: 42px;
+        }
+        .modal-field input:focus, .modal-field select:focus { border-color: #1a73e8; }
+        .qty-modal .qty-input-group { gap: 8px; }
+        .qty-modal .qty-input-group select {
+            height: 44px;
+            border: 2px solid #dadce0;
+            border-radius: 16px;
+            padding: 0 6px;
+            font-size: 0.9rem;
+            font-family: inherit;
+            background: white;
+            color: #202124;
+        }
+        .qty-modal .modal-actions { flex-wrap: wrap; }
+        .qty-modal .modal-actions + .modal-actions { margin-top: 8px; }
+        .qty-modal .modal-actions a {
+            flex: 1;
+            padding: 10px;
+            border-radius: 30px;
+            text-align: center;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            background: #e6f4ea;
+            color: #137333;
+        }
+        .share-preview {
+            background: #f8f9fa;
+            border-radius: 14px;
+            padding: 10px 12px;
+            font-size: 0.78rem;
+            white-space: pre-wrap;
+            word-break: break-word;
+            max-height: 40vh;
+            overflow: auto;
+            margin: 10px 0 0 0;
+            color: #202124;
+        }
+        .todo-meta { flex-wrap: wrap; gap: 4px; }
+        .todo-gcal { margin-left: 0; }
+        .todo-gcal.sent { background: #e6f4ea; border-color: #ceead6; color: #137333; }
+        .todo-add-btn {
+            background: #1a73e8;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            padding: 8px 16px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            font-family: inherit;
+            min-height: 42px;
+            cursor: pointer;
+        }
+        .todo-add-btn:active { transform: scale(0.98); }
+        .todo-tools { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+        .todo-tools button {
+            background: white;
+            border: 1px solid #dadce0;
+            border-radius: 20px;
+            padding: 6px 12px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            font-family: inherit;
+            color: #1a73e8;
+            cursor: pointer;
+            min-height: 34px;
+        }
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <div class="header">
+        <div class="logo"><span>🛒</span><h1>SpesaFlow</h1></div>
+        <div class="header-actions">
+            <button class="btn-header btn-backup" id="backupBtn">💾 Backup</button>
+            <button class="btn-header btn-restore" id="restoreBtn">📂 Ripristina</button>
+            <button class="btn-header btn-reset" id="resetBtn">⟳ Reset</button>
+        </div>
+    </div>
+
+    <div id="backupBanner" class="banner banner-backup" style="display:none;"></div>
+
+    <!-- SCHEDE -->
+    <div class="tabs">
+        <button class="tab-btn active" id="tabSpesa" type="button">🛒 Spesa</button>
+        <button class="tab-btn" id="tabTodo" type="button">✅ Cose da fare <span class="tab-badge" id="todoBadge" style="display:none;">0</span></button>
+    </div>
+
+    <div id="viewSpesa">
+        <button id="todoBanner" class="banner banner-todo" type="button" style="display:none;"></button>
+
+        <!-- CARRELLO -->
+        <div class="cart-area" id="cartArea">
+            <div class="cart-header">
+                <span class="cart-title">🛒 Carrello</span>
+                <div class="cart-actions">
+                    <span class="cart-count" id="cartCount">0 prodotti</span>
+                    <button class="finish-btn" id="finishBtn" type="button" style="display:none;">✅ Fine spesa</button>
+                    <button class="share-btn" id="shareBtn" type="button" style="display:none;">📤 Condividi</button>
+                    <button class="clear-cart-btn" id="clearCartBtn" type="button" title="Svuota carrello" aria-label="Svuota carrello">🗑️</button>
+                </div>
+            </div>
+            <div class="cart-items" id="cartItems"></div>
+        </div>
+
+        <div class="search-row">
+            <input type="search" id="searchInput" placeholder="🔍 Cerca un prodotto..." aria-label="Cerca un prodotto" autocomplete="off">
+            <button id="searchClear" type="button" aria-label="Cancella ricerca" style="display:none;">✕</button>
+        </div>
+
+        <div id="board" class="categories-board"></div>
+    </div>
+
+    <!-- COSE DA FARE -->
+    <div id="viewTodo" style="display:none;">
+        <div class="todo-add">
+            <input type="text" id="todoText" placeholder="Nuova cosa da fare... (Invio)" enterkeyhint="done">
+            <div class="todo-add-row">
+                <label>📅 <input type="date" id="todoDate" aria-label="Data (facoltativa)"></label>
+                <label>🕒 <input type="time" id="todoTime" aria-label="Ora (facoltativa)"></label>
+            </div>
+            <button id="todoAddBtn" class="todo-add-btn" type="button">➕ Aggiungi</button>
+        </div>
+        <div class="todo-tools">
+            <button id="notifyBtn" type="button" style="display:none;">🔔 Attiva avvisi</button>
+            <button id="icsBtn" type="button" style="display:none;">📆 Esporta per il calendario (.ics)</button>
+        </div>
+        <div id="todoList"></div>
+    </div>
+</div>
+
+<input type="file" id="fileInput" accept=".json,application/json">
+
+<script>
+    // ---------- MODELLO DATI ----------
+    // categories: [{ id, name, subCategories: [{ id, name }] }]
+    // notes:      un "contenitore" di prodotti per ogni negozio (o per la categoria, se non ha negozi)
+    //             [{ id, categoryId, subCategoryId, listItems: [{ id, text, note, unit, qty }] }]
+    // cart:       [{ itemId, quantity, unit, done }]
+    // todos:      [{ id, text, date: 'AAAA-MM-GG' o '', time: 'HH:MM' o '', done, notified, gcal }]
+    const STORAGE_KEY = 'spesaflow_data';
+    const DAY = 86400000;
+    const UNITS = [['', 'pz'], ['kg', 'kg'], ['g', 'g'], ['l', 'l'], ['conf.', 'conf.']];
+    let categories = [];
+    let notes = [];
+    let cart = [];
+    let todos = [];
+    let expandedCategories = new Set();
+    let expandedSubCategories = new Set();
+    let searchQuery = '';
+
+    // ---------- UTILITÀ ----------
+    function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+    function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* non importante */ } }
+
+    let uidCounter = 0;
+    function uid() {
+        uidCounter = (uidCounter + 1) % 1000;
+        return Date.now() * 1000 + uidCounter;
+    }
+
+    function esc(s) {
+        if (s === null || s === undefined) return '';
+        return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    }
+
+    function plural(n) {
+        return n + (n === 1 ? ' prodotto' : ' prodotti');
+    }
+
+    function pad2(n) { return String(n).padStart(2, '0'); }
+
+    function norm(s) {
+        return String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    }
+
+    function byText(a, b) {
+        return a.localeCompare(b, 'it', { sensitivity: 'base' });
+    }
+
+    function sortItems(note) {
+        note.listItems.sort((a, b) => byText(a.text, b.text));
+    }
+
+    function validUnit(u) {
+        return UNITS.some(x => x[0] === u) ? u : '';
+    }
+
+    function validQty(q) {
+        q = parseFloat(q);
+        return (isNaN(q) || q <= 0) ? 1 : Math.round(q * 100) / 100;
+    }
+
+    function fmtNum(q) {
+        return String(Math.round(q * 100) / 100).replace('.', ',');
+    }
+
+    // "×2" per i pezzi, "500 g" per le altre unità
+    function fmtQty(q, unit) {
+        return unit ? `${fmtNum(q)} ${unit}` : `×${fmtNum(q)}`;
+    }
+
+    function findItem(itemId) {
+        for (let note of notes) {
+            for (let item of note.listItems) {
+                if (item.id === itemId) return { note, item };
+            }
+        }
+        return null;
+    }
+
+    function sourceOf(note) {
+        let cat = categories.find(c => c.id == note.categoryId);
+        let sub = cat ? cat.subCategories.find(s => s.id == note.subCategoryId) : null;
+        return {
+            key: note.categoryId + '|' + (sub ? sub.id : 'null'),
+            label: sub ? sub.name : (cat ? cat.name : 'Senza negozio')
+        };
+    }
+
+    function getContainer(catId, subId, create) {
+        let n = notes.find(n => n.categoryId == catId && n.subCategoryId == subId && (n.subCategoryId === null) === (subId === null));
+        if (!n && create) {
+            n = { id: uid(), type: 'list', listItems: [], categoryId: catId, subCategoryId: subId };
+            notes.push(n);
+        }
+        return n || null;
+    }
+
+    // Un solo contenitore di prodotti per negozio: unisce le vecchie "liste" dello stesso negozio
+    function ensureContainers() {
+        let result = [];
+        for (let cat of categories) {
+            let subIds = cat.subCategories.map(s => s.id);
+            let slots = new Map();
+            for (let n of notes.filter(n => n.categoryId == cat.id)) {
+                let sid = subIds.find(id => id == n.subCategoryId);
+                if (sid === undefined) sid = null;
+                n.subCategoryId = sid;
+                if (slots.has(sid)) slots.get(sid).listItems.push(...n.listItems);
+                else slots.set(sid, n);
+            }
+            for (let sid of subIds) {
+                if (!slots.has(sid)) slots.set(sid, { id: uid(), type: 'list', listItems: [], categoryId: cat.id, subCategoryId: sid });
+            }
+            if (!subIds.length && !slots.has(null)) {
+                slots.set(null, { id: uid(), type: 'list', listItems: [], categoryId: cat.id, subCategoryId: null });
+            }
+            if (subIds.length && slots.has(null) && !slots.get(null).listItems.length) slots.delete(null);
+            slots.forEach(n => { sortItems(n); result.push(n); });
+        }
+        notes = result;
+    }
+
+    function save() {
+        try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify({ categories, notes, cart, todos }));
+        } catch (e) {
+            showToast('❌ Impossibile salvare: ' + e.message, 'error');
+        }
+    }
+
+    // Toglie dal carrello i prodotti che non esistono più e i doppioni
+    function pruneCart() {
+        let seen = new Set();
+        cart = cart.filter(c => {
+            if (seen.has(c.itemId) || !findItem(c.itemId)) return false;
+            seen.add(c.itemId);
+            return true;
+        });
+    }
+
+    function commit() {
+        ensureContainers();
+        pruneCart();
+        save();
+        render();
+        renderTodos();
+    }
+
+    // ---------- STATO APERTO/CHIUSO ----------
+    function expandAll() {
+        expandedCategories = new Set(categories.map(c => c.id));
+        expandedSubCategories = new Set();
+        categories.forEach(c => c.subCategories.forEach(s => expandedSubCategories.add(s.id)));
+    }
+
+    function saveUiState() {
+        let cc = categories.filter(c => !expandedCategories.has(c.id)).map(c => c.id);
+        let cs = [];
+        categories.forEach(c => c.subCategories.forEach(s => { if (!expandedSubCategories.has(s.id)) cs.push(s.id); }));
+        lsSet('spesaflow_ui', JSON.stringify({ cc, cs }));
+    }
+
+    function loadUiState() {
+        expandAll();
+        try {
+            let u = JSON.parse(lsGet('spesaflow_ui') || '{}') || {};
+            (u.cc || []).forEach(id => expandedCategories.delete(id));
+            (u.cs || []).forEach(id => expandedSubCategories.delete(id));
+        } catch (e) { /* resta tutto aperto */ }
+    }
+
+    // Sistema i dati caricati (anche quelli salvati dalle versioni precedenti)
+    function normalizeData() {
+        if (!Array.isArray(categories)) categories = [];
+        if (!Array.isArray(notes)) notes = [];
+        if (!Array.isArray(cart)) cart = [];
+        if (!Array.isArray(todos)) todos = [];
+
+        categories = categories.filter(c => c);
+        categories.forEach(c => {
+            if (!Array.isArray(c.subCategories)) c.subCategories = [];
+            c.subCategories = c.subCategories.filter(s => s);
+            c.name = String(c.name === undefined || c.name === null ? '' : c.name);
+        });
+
+        notes = notes.filter(n => n && categories.some(c => c.id == n.categoryId));
+        notes.forEach(n => {
+            n.type = 'list';
+            if (!Array.isArray(n.listItems)) n.listItems = [];
+            if (n.subCategoryId === undefined) n.subCategoryId = null;
+            n.listItems = n.listItems.filter(it => it && it.text !== undefined && it.text !== null);
+            n.listItems.forEach(it => {
+                it.text = String(it.text);
+                if (!it.id) it.id = uid();
+                it.note = it.note ? String(it.note) : '';
+                it.unit = validUnit(it.unit);
+                it.qty = validQty(it.qty);
+            });
+        });
+
+        // Carrello nel vecchio formato (lista + posizione) -> nuovo formato (itemId)
+        cart = cart.filter(c => c).map(c => {
+            let quantity = validQty(c.quantity);
+            if (c.itemId) return { itemId: c.itemId, quantity, unit: validUnit(c.unit), done: !!c.done };
+            let n = notes.find(n => n.id == c.noteId);
+            if (!n) return null;
+            let item = n.listItems.find(it => it.text === c.product) || n.listItems[c.itemIdx];
+            if (!item) return null;
+            return { itemId: item.id, quantity, unit: '', done: false };
+        }).filter(c => c);
+
+        notes.forEach(n => n.listItems.forEach(it => { delete it.inCart; }));
+        ensureContainers();
+        pruneCart();
+
+        // Cose da fare
+        todos = todos
+            .filter(t => t && t.text !== undefined && t.text !== null && String(t.text).trim())
+            .map(t => {
+                let date = /^\d{4}-\d{2}-\d{2}$/.test(t.date) ? t.date : '';
+                return {
+                    id: t.id || uid(),
+                    text: String(t.text),
+                    date,
+                    time: (date && /^\d{2}:\d{2}$/.test(t.time)) ? t.time : '',
+                    done: !!t.done,
+                    notified: t.notified ? String(t.notified) : '',
+                    gcal: !!t.gcal
+                };
+            });
+    }
+
+    function loadDefaults() {
+        categories = [
+            { id: 1, name: "🛒 Supermercati", subCategories: [{ id: 101, name: "Eurospin" }, { id: 102, name: "Lidl" }, { id: 103, name: "Conad" }] },
+            { id: 2, name: "🏠 Casa", subCategories: [{ id: 201, name: "Pulizie" }] }
+        ];
+        notes = [
+            { id: 1001, listItems: [{ text: "🥛 Latte" }, { text: "🍞 Pane" }, { text: "🧀 Formaggini" }], categoryId: 1, subCategoryId: 101 },
+            { id: 1002, listItems: [{ text: "🥩 Pollo" }, { text: "🥬 Insalata" }], categoryId: 1, subCategoryId: 102 },
+            { id: 1003, listItems: [{ text: "🧴 Detersivo" }, { text: "🧹 Spazzolone" }], categoryId: 2, subCategoryId: 201 }
+        ];
+        cart = [];
+        todos = [];
+        normalizeData();
+        expandAll();
+        saveUiState();
+    }
+
+    // ---------- TOAST ----------
+    function showToast(message, type = '') {
+        let existing = document.querySelector('.toast');
+        if (existing) existing.remove();
+        let toast = document.createElement('div');
+        toast.className = 'toast ' + type;
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 3500);
+    }
+
+    // ---------- FINESTRA (modale) ----------
+    function openModal(html) {
+        let existing = document.querySelector('.qty-modal-overlay');
+        if (existing) existing.remove();
+        let overlay = document.createElement('div');
+        overlay.className = 'qty-modal-overlay';
+        overlay.innerHTML = `<div class="qty-modal">${html}</div>`;
+        document.body.appendChild(overlay);
+        overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
+        return overlay;
+    }
+
+    // ---------- BACKUP ----------
+    function downloadFile(content, type, name) {
+        let blob = new Blob([content], { type });
+        let url = URL.createObjectURL(blob);
+        let link = document.createElement('a');
+        link.href = url;
+        link.download = name;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+
+    function backupData() {
+        try {
+            let data = { categories, notes, cart, todos, version: '3.0', exportedAt: new Date().toISOString() };
+            downloadFile(JSON.stringify(data, null, 2), 'application/json', `spesaflow_backup_${new Date().toISOString().slice(0, 10)}.json`);
+            lsSet('spesaflow_last_backup', String(Date.now()));
+            renderBackupBanner();
+            showToast('✅ Backup creato con successo!', 'success');
+        } catch (e) {
+            showToast('❌ Errore durante il backup: ' + e.message, 'error');
+        }
+    }
+
+    // Promemoria: avvisa se l'ultimo backup ha più di 30 giorni
+    function renderBackupBanner() {
+        let el = document.getElementById('backupBanner');
+        let now = Date.now();
+        let first = Number(lsGet('spesaflow_first_use'));
+        if (!first) { first = now; lsSet('spesaflow_first_use', String(now)); }
+        let last = Number(lsGet('spesaflow_last_backup')) || 0;
+        let snooze = Number(lsGet('spesaflow_backup_snooze')) || 0;
+        let days = Math.floor((now - (last || first)) / DAY);
+        if (days < 30 || now < snooze) { el.style.display = 'none'; return; }
+        el.style.display = '';
+        el.innerHTML = `<span>💾 ${last ? `Ultimo backup ${days} giorni fa` : 'Non hai ancora fatto un backup'}: i dati sono salvati solo su questo dispositivo.</span>
+            <span class="banner-actions">
+                <button type="button" data-bk="do">Fai backup</button>
+                <button type="button" data-bk="later">Più tardi</button>
+            </span>`;
+    }
+    document.getElementById('backupBanner').onclick = (e) => {
+        let b = e.target.closest('[data-bk]');
+        if (!b) return;
+        if (b.dataset.bk === 'do') backupData();
+        else { lsSet('spesaflow_backup_snooze', String(Date.now() + 7 * DAY)); renderBackupBanner(); }
+    };
+
+    // ---------- RIPRISTINO ----------
+    function restoreData(file) {
+        let reader = new FileReader();
+        reader.onload = function (e) {
+            try {
+                let data = JSON.parse(e.target.result);
+                if (!data || !Array.isArray(data.categories) || !Array.isArray(data.notes)) {
+                    showToast('❌ File non valido: dati mancanti', 'error');
+                    return;
+                }
+                if (!confirm('⚠️ Questo sovrascriverà tutti i dati correnti. Continuare?')) return;
+                categories = data.categories;
+                notes = data.notes;
+                cart = Array.isArray(data.cart) ? data.cart : [];
+                if (Array.isArray(data.todos)) todos = data.todos;   // i backup vecchi non le contengono: restano quelle attuali
+                normalizeData();
+                expandAll();
+                saveUiState();
+                commit();
+                showToast('✅ Dati ripristinati con successo!', 'success');
+            } catch (err) {
+                showToast('❌ Errore durante il ripristino: ' + err.message, 'error');
+            }
+        };
+        reader.onerror = () => showToast('❌ Impossibile leggere il file', 'error');
+        reader.readAsText(file);
+    }
+
+    // ---------- CATEGORIE E NEGOZI ----------
+    function addCategory() {
+        let id = uid();
+        categories.push({ id, name: "Nuova categoria", subCategories: [] });
+        expandedCategories.add(id);
+        commit();
+    }
+
+    function updateCategory(id, name) {
+        let c = categories.find(c => c.id == id);
+        if (c) c.name = name.trim() || c.name;
+        commit();
+    }
+
+    function deleteCategory(id) {
+        let c = categories.find(c => c.id == id);
+        if (!c) return;
+        if (!confirm(`🗑️ Eliminare la categoria "${c.name}" con tutti i suoi negozi e prodotti?`)) return;
+        categories = categories.filter(c => c.id != id);
+        notes = notes.filter(n => n.categoryId != id);
+        expandedCategories.delete(id);
+        commit();
+        saveUiState();
+    }
+
+    function addSubCategory(catId) {
+        let c = categories.find(c => c.id == catId);
+        if (!c) return;
+        let id = uid();
+        c.subCategories.push({ id, name: "Nuovo negozio" });
+        expandedSubCategories.add(id);
+        expandedCategories.add(catId);
+        commit();
+        saveUiState();
+    }
+
+    function updateSubCategory(catId, subId, name) {
+        let c = categories.find(c => c.id == catId);
+        let s = c ? c.subCategories.find(s => s.id == subId) : null;
+        if (s) s.name = name.trim() || s.name;
+        commit();
+    }
+
+    function deleteSubCategory(catId, subId) {
+        let c = categories.find(c => c.id == catId);
+        let s = c ? c.subCategories.find(s => s.id == subId) : null;
+        if (!s) return;
+        let box = getContainer(catId, subId);
+        let n = box ? box.listItems.length : 0;
+        let msg = `🗑️ Eliminare il negozio "${s.name}"?` + (n ? `\nI suoi prodotti (${n}) verranno spostati in "Senza negozio".` : '');
+        if (!confirm(msg)) return;
+        c.subCategories = c.subCategories.filter(s => s.id != subId);
+        expandedSubCategories.delete(subId);
+        commit();   // ensureContainers sposta i prodotti rimasti in "Senza negozio"
+        saveUiState();
+    }
+
+    function toggleCategory(catId) {
+        if (expandedCategories.has(catId)) expandedCategories.delete(catId);
+        else expandedCategories.add(catId);
+        saveUiState();
+        render();
+    }
+
+    function toggleSubCategory(subId) {
+        if (expandedSubCategories.has(subId)) expandedSubCategories.delete(subId);
+        else expandedSubCategories.add(subId);
+        saveUiState();
+        render();
+    }
+
+    // ---------- PRODOTTI ----------
+    function focusNewInput(noteId) {
+        let inp = document.getElementById(`newInput-${noteId}`);
+        if (inp) inp.focus();
+    }
+
+    function addListItem(noteId, text) {
+        let n = notes.find(n => n.id == noteId);
+        text = text.trim();
+        if (!n || !text) return;
+        n.listItems.push({ id: uid(), text, note: '', unit: '', qty: 1 });
+        commit();
+        focusNewInput(noteId);   // così si possono scrivere più prodotti di fila
+    }
+
+    function removeListItem(itemId) {
+        let found = findItem(itemId);
+        if (!found) return;
+        found.note.listItems = found.note.listItems.filter(it => it.id !== itemId);
+        commit();
+    }
+
+    function updateListItemText(itemId, text) {
+        let found = findItem(itemId);
+        text = text.trim();
+        if (found && text) found.item.text = text;
+        commit();
+    }
+
+    function moveItem(itemId, catId, subId) {
+        let found = findItem(itemId);
+        if (!found) return;
+        let target = getContainer(catId, subId, true);
+        if (target === found.note) return;
+        found.note.listItems = found.note.listItems.filter(it => it.id !== itemId);
+        target.listItems.push(found.item);
+    }
+
+    // Tutti i posti in cui può stare un prodotto
+    function destinations() {
+        let list = [];
+        for (let cat of categories) {
+            if (!cat.subCategories.length) {
+                list.push({ value: `${cat.id}|null`, label: cat.name, catId: cat.id, subId: null });
+                continue;
+            }
+            for (let sub of cat.subCategories) {
+                list.push({ value: `${cat.id}|${sub.id}`, label: `${cat.name} › ${sub.name}`, catId: cat.id, subId: sub.id });
+            }
+            if (getContainer(cat.id, null)) {
+                list.push({ value: `${cat.id}|null`, label: `${cat.name} › Senza negozio`, catId: cat.id, subId: null });
+            }
+        }
+        return list;
+    }
+
+    // Finestra "⋯" del prodotto: nota e spostamento in un altro negozio
+    function showProductModal(itemId) {
+        let found = findItem(itemId);
+        if (!found) return;
+        let dests = destinations();
+        let current = `${found.note.categoryId}|${found.note.subCategoryId === null ? 'null' : found.note.subCategoryId}`;
+        let overlay = openModal(`
+            <h3>📦 <span class="product-name">${esc(found.item.text)}</span></h3>
+            <div class="source-info">📌 ${esc(sourceOf(found.note).label)}</div>
+            <label class="modal-field">Nota (facoltativa)
+                <input type="text" class="m-note" value="${esc(found.item.note)}" placeholder="es. quello senza lattosio" maxlength="80">
+            </label>
+            ${dests.length > 1 ? `<label class="modal-field">Sposta in…
+                <select class="m-dest">${dests.map(d => `<option value="${esc(d.value)}" ${d.value === current ? 'selected' : ''}>${esc(d.label)}</option>`).join('')}</select>
+            </label>` : ''}
+            <div class="modal-actions">
+                <button class="btn-cancel" type="button">Annulla</button>
+                <button class="btn-confirm" type="button">✅ Salva</button>
+            </div>`);
+        overlay.querySelector('.btn-cancel').onclick = () => overlay.remove();
+        overlay.querySelector('.btn-confirm').onclick = () => {
+            found.item.note = overlay.querySelector('.m-note').value.trim();
+            let sel = overlay.querySelector('.m-dest');
+            let moved = false;
+            if (sel && sel.value !== current) {
+                let d = dests.find(d => d.value === sel.value);
+                if (d) { moveItem(itemId, d.catId, d.subId); moved = d.label; }
+            }
+            overlay.remove();
+            commit();
+            if (moved) showToast(`✅ Spostato in ${moved}`, 'success');
+        };
+    }
+
+    // ---------- CARRELLO ----------
+    // Un tocco: aggiunge con l'ultima quantità usata (la prima volta ×1)
+    function quickAdd(itemId) {
+        let found = findItem(itemId);
+        if (!found) return;
+        if (cart.some(c => c.itemId === itemId)) { showCartModal(itemId); return; }
+        cart.push({ itemId, quantity: validQty(found.item.qty), unit: validUnit(found.item.unit), done: false });
+        commit();
+    }
+
+    function setCart(itemId, quantity, unit) {
+        let found = findItem(itemId);
+        if (!found) return;
+        if (quantity <= 0) {
+            cart = cart.filter(c => c.itemId !== itemId);
+            return;
+        }
+        quantity = validQty(quantity);
+        unit = validUnit(unit);
+        let entry = cart.find(c => c.itemId === itemId);
+        if (entry) { entry.quantity = quantity; entry.unit = unit; }
+        else cart.push({ itemId, quantity, unit, done: false });
+        found.item.qty = quantity;   // ricordate per la prossima volta
+        found.item.unit = unit;
+    }
+
+    function removeFromCart(itemId) {
+        cart = cart.filter(c => c.itemId !== itemId);
+        commit();
+    }
+
+    function toggleDone(itemId) {
+        let entry = cart.find(c => c.itemId === itemId);
+        if (!entry) return;
+        entry.done = !entry.done;
+        save();
+        renderCart();
+    }
+
+    function clearCart() {
+        cart = [];
+        commit();
+    }
+
+    function finishShopping() {
+        let taken = cart.filter(c => c.done).length;
+        if (!taken) return;
+        if (!confirm(`✅ Fine spesa: tolgo dal carrello i prodotti presi (${taken})?`)) return;
+        cart = cart.filter(c => !c.done);
+        commit();
+        showToast(cart.length ? `✅ Fatto! Restano da prendere: ${plural(cart.length)}` : '✅ Spesa completata!', 'success');
+    }
+
+    // Carrello raggruppato per negozio: da prendere in alto, già presi in fondo
+    function cartGroups(onlyOpen) {
+        let groups = new Map();
+        cart.forEach(entry => {
+            if (onlyOpen && entry.done) return;
+            let found = findItem(entry.itemId);
+            if (!found) return;
+            let src = sourceOf(found.note);
+            if (!groups.has(src.key)) groups.set(src.key, { label: src.label, items: [] });
+            groups.get(src.key).items.push({ entry, text: found.item.text, note: found.item.note || '' });
+        });
+        let sorted = [...groups.values()].sort((a, b) => byText(a.label, b.label));
+        sorted.forEach(g => g.items.sort((a, b) => (a.entry.done - b.entry.done) || byText(a.text, b.text)));
+        return sorted;
+    }
+
+    function renderCart() {
+        let container = document.getElementById('cartItems');
+        let count = document.getElementById('cartCount');
+        let taken = cart.filter(c => c.done).length;
+        count.textContent = taken ? `${taken}/${cart.length} presi` : plural(cart.length);
+        document.getElementById('finishBtn').style.display = taken ? '' : 'none';
+        document.getElementById('shareBtn').style.display = cart.length > taken ? '' : 'none';
+        document.getElementById('clearCartBtn').style.display = cart.length ? '' : 'none';
+
+        if (!cart.length) {
+            container.innerHTML = '<div class="cart-empty">📋 Tocca 🛒 accanto a un prodotto per aggiungerlo</div>';
+            return;
+        }
+
+        let html = '';
+        for (let group of cartGroups(false)) {
+            let groupTaken = group.items.filter(i => i.entry.done).length;
+            let groupCount = groupTaken ? `${groupTaken}/${group.items.length} presi` : plural(group.items.length);
+            html += `<div class="cart-group">
+                        <div class="cart-group-header">
+                            <span>📌 ${esc(group.label)}</span>
+                            <span class="group-count">${groupCount}</span>
+                        </div>
+                        <div class="cart-group-items">`;
+            for (let { entry, text, note } of group.items) {
+                html += `<div class="cart-item ${entry.done ? 'done' : ''}">
+                            <button class="item-check" type="button" data-cart-check="${entry.itemId}" aria-label="Segna come preso">${entry.done ? '✓' : ''}</button>
+                            <div class="item-name" data-cart-check="${entry.itemId}">${esc(text)}${note ? `<span class="item-note">📝 ${esc(note)}</span>` : ''}</div>
+                            <span class="item-qty" data-cart-qty="${entry.itemId}">${esc(fmtQty(entry.quantity, entry.unit))}</span>
+                            <button class="btn-remove-cart" type="button" data-cart-remove="${entry.itemId}" aria-label="Togli dal carrello">✖</button>
+                        </div>`;
+            }
+            html += `</div></div>`;
+        }
+        container.innerHTML = html;
+    }
+
+    document.getElementById('cartItems').onclick = (e) => {
+        let el = e.target.closest('[data-cart-check],[data-cart-qty],[data-cart-remove]');
+        if (!el) return;
+        if (el.dataset.cartCheck) toggleDone(Number(el.dataset.cartCheck));
+        else if (el.dataset.cartQty) showCartModal(Number(el.dataset.cartQty));
+        else if (el.dataset.cartRemove) removeFromCart(Number(el.dataset.cartRemove));
+    };
+
+    // Finestra del carrello: quantità, unità e nota
+    function showCartModal(itemId) {
+        let found = findItem(itemId);
+        let entry = cart.find(c => c.itemId === itemId);
+        if (!found || !entry) return;
+        let overlay = openModal(`
+            <h3>✏️ <span class="product-name">${esc(found.item.text)}</span></h3>
+            <div class="source-info">📌 ${esc(sourceOf(found.note).label)}</div>
+            <div class="qty-label">Quantità:</div>
+            <div class="qty-input-group">
+                <button class="qty-dec" type="button" aria-label="Meno">−</button>
+                <input type="number" inputmode="decimal" class="qty-input" value="${entry.quantity}" min="0" step="any" aria-label="Quantità">
+                <button class="qty-inc" type="button" aria-label="Più">+</button>
+                <select class="qty-unit" aria-label="Unità">${UNITS.map(u => `<option value="${esc(u[0])}" ${u[0] === entry.unit ? 'selected' : ''}>${esc(u[1])}</option>`).join('')}</select>
+            </div>
+            <div class="qty-hint">(0 per togliere dal carrello)</div>
+            <label class="modal-field">Nota (facoltativa)
+                <input type="text" class="m-note" value="${esc(found.item.note)}" placeholder="es. quello senza lattosio" maxlength="80">
+            </label>
+            <div class="modal-actions">
+                <button class="btn-cancel" type="button">Annulla</button>
+                <button class="btn-confirm" type="button">✅ Aggiorna</button>
+                <button class="btn-delete" type="button">🗑️ Rimuovi</button>
+            </div>`);
+        let input = overlay.querySelector('.qty-input');
+        let read = () => {
+            let v = parseFloat(String(input.value).replace(',', '.'));
+            return isNaN(v) ? entry.quantity : Math.max(0, Math.round(v * 100) / 100);
+        };
+        let confirmQty = () => {
+            found.item.note = overlay.querySelector('.m-note').value.trim();
+            setCart(itemId, read(), overlay.querySelector('.qty-unit').value);
+            overlay.remove();
+            commit();
+        };
+        overlay.querySelector('.qty-dec').onclick = () => { input.value = Math.max(0, Math.round((read() - 1) * 100) / 100); };
+        overlay.querySelector('.qty-inc').onclick = () => { input.value = Math.round((read() + 1) * 100) / 100; };
+        input.onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); confirmQty(); } };
+        overlay.querySelector('.btn-confirm').onclick = confirmQty;
+        overlay.querySelector('.btn-cancel').onclick = () => overlay.remove();
+        overlay.querySelector('.btn-delete').onclick = () => { overlay.remove(); removeFromCart(itemId); };
+    }
+
+    // ---------- CONDIVISIONE DEL CARRELLO ----------
+    function buildShareText() {
+        let groups = cartGroups(true);
+        if (!groups.length) return '';
+        let lines = ['🛒 Lista della spesa'];
+        for (let g of groups) {
+            lines.push('', `📌 ${g.label}`);
+            for (let { entry, text, note } of g.items) {
+                let qty = (entry.unit || entry.quantity !== 1) ? ' ' + fmtQty(entry.quantity, entry.unit) : '';
+                lines.push(`• ${text}${qty}${note ? ` (${note})` : ''}`);
+            }
+        }
+        return lines.join('\n');
+    }
+
+    function copyText(text) {
+        let fallback = () => {
+            let ta = document.createElement('textarea');
+            ta.value = text;
+            ta.style.position = 'fixed';
+            ta.style.opacity = '0';
+            document.body.appendChild(ta);
+            ta.select();
+            let ok = false;
+            try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+            document.body.removeChild(ta);
+            showToast(ok ? '✅ Lista copiata' : '❌ Copia non riuscita: seleziona il testo a mano', ok ? 'success' : 'error');
+        };
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(() => showToast('✅ Lista copiata', 'success'), fallback);
+        } else fallback();
+    }
+
+    function shareCart() {
+        let text = buildShareText();
+        if (!text) { showToast('Non c\'è niente da prendere nel carrello'); return; }
+        let overlay = openModal(`
+            <h3>📤 Condividi la lista</h3>
+            <div class="source-info">Solo i prodotti ancora da prendere</div>
+            <div class="share-preview">${esc(text)}</div>
+            <div class="modal-actions">
+                ${navigator.share ? '<button class="btn-confirm s-share" type="button">📤 Condividi…</button>' : ''}
+                <a class="s-wa" href="https://wa.me/?text=${encodeURIComponent(text)}" target="_blank" rel="noopener">WhatsApp</a>
+                <button class="btn-cancel s-copy" type="button">📋 Copia</button>
+            </div>
+            <div class="modal-actions"><button class="btn-cancel s-close" type="button">Chiudi</button></div>`);
+        let shareBtn = overlay.querySelector('.s-share');
+        if (shareBtn) shareBtn.onclick = () => {
+            navigator.share({ text }).then(() => overlay.remove(), () => { /* annullato */ });
+        };
+        overlay.querySelector('.s-wa').onclick = () => setTimeout(() => overlay.remove(), 300);
+        overlay.querySelector('.s-copy').onclick = () => { copyText(text); overlay.remove(); };
+        overlay.querySelector('.s-close').onclick = () => overlay.remove();
+    }
+
+    // ---------- RENDER DELLA SPESA ----------
+    function renderProducts(box, cartMap, q) {
+        let items = box ? box.listItems : [];
+        if (q) items = items.filter(it => norm(it.text).includes(q) || norm(it.note).includes(q));
+        let html = '';
+        if (!items.length) {
+            html = '<div class="list-empty">Nessun prodotto</div>';
+        } else {
+            for (let it of items) {
+                let entry = cartMap.get(it.id);
+                let label = '🛒';
+                if (entry) label = (entry.unit || entry.quantity !== 1) ? `✓ ${esc(fmtQty(entry.quantity, entry.unit))}` : '✓';
+                html += `<div class="list-item ${entry ? 'in-cart' : ''}">
+                            <button class="btn-cart-add ${entry ? 'in-cart' : ''}" type="button" data-cart-add="${it.id}" aria-label="${entry ? 'Modifica quantità' : 'Aggiungi al carrello'}">${label}</button>
+                            <div class="list-main">
+                                <input class="list-text ${entry ? 'in-cart-text' : ''}" value="${esc(it.text)}" data-text="${it.id}" aria-label="Nome del prodotto">
+                                ${it.note ? `<div class="list-note">📝 ${esc(it.note)}</div>` : ''}
+                            </div>
+                            <button class="remove-item" type="button" data-menu="${it.id}" aria-label="Nota e sposta">⋯</button>
+                            <button class="remove-item" type="button" data-remove="${it.id}" aria-label="Elimina prodotto">✖️</button>
+                        </div>`;
+            }
+        }
+        if (!q && box) {
+            html += `<div class="add-item-row">
+                        <input type="text" id="newInput-${box.id}" data-newitem="${box.id}" placeholder="Nuovo prodotto... (Invio)" enterkeyhint="done">
+                        <button type="button" data-additem="${box.id}" aria-label="Aggiungi prodotto">➕</button>
+                     </div>`;
+        }
+        return { html, count: items.length };
+    }
+
+    function render() {
+        let board = document.getElementById('board');
+        if (!board) return;
+        let q = norm(searchQuery.trim());
+
+        if (!categories.length) {
+            board.innerHTML = `<div class="add-category-btn" id="addCatBtn">+ Crea prima categoria</div>`;
+            renderCart();
+            return;
+        }
+
+        let cartMap = new Map(cart.map(c => [c.itemId, c]));
+        let html = '';
+        let totalFound = 0;
+        for (let cat of categories) {
+            let isCatExpanded = q ? true : expandedCategories.has(cat.id);
+            let hasSubs = cat.subCategories.length > 0;
+            let body = '';
+            let found = 0;
+
+            if (hasSubs) {
+                let subsHtml = '';
+                for (let sub of cat.subCategories) {
+                    let isSubExpanded = q ? true : expandedSubCategories.has(sub.id);
+                    let res = renderProducts(getContainer(cat.id, sub.id), cartMap, q);
+                    if (q && !res.count) continue;
+                    found += res.count;
+                    subsHtml += `<div class="subcategory-item">
+                                <span class="subcategory-toggle" data-toggle-sub="${sub.id}">${isSubExpanded ? '▼' : '▶'}</span>
+                                <input class="subcat-name" value="${esc(sub.name)}" data-cat="${cat.id}" data-sub="${sub.id}" aria-label="Nome del negozio">
+                                <span class="sub-count">${res.count}</span>
+                                <button class="icon-btn" type="button" data-delsub="${cat.id}|${sub.id}" style="min-width:32px;min-height:32px;" aria-label="Elimina negozio">✖️</button>
+                            </div>
+                            <div class="subcategory-body ${isSubExpanded ? '' : 'collapsed'}">
+                                <div class="notes-container">${res.html}</div>
+                            </div>`;
+                }
+                if (subsHtml) body += `<div class="subcategory-list">${subsHtml}</div>`;
+            }
+
+            let loose = getContainer(cat.id, null);
+            if (loose) {
+                let res = renderProducts(loose, cartMap, q);
+                if (!q || res.count) {
+                    found += res.count;
+                    body += `${hasSubs ? '<div class="loose-label">📝 Senza negozio</div>' : ''}
+                            <div class="notes-container">${res.html}</div>`;
+                }
+            }
+
+            if (q && !found) continue;
+            totalFound += found;
+            html += `<div class="category-column">
+                        <div class="category-header" data-toggle-cat="${cat.id}">
+                            <span class="category-toggle ${isCatExpanded ? '' : 'collapsed'}">▼</span>
+                            <input class="category-title" value="${esc(cat.name)}" data-cat="${cat.id}" aria-label="Nome della categoria">
+                            <div class="category-actions">
+                                <button class="icon-btn" type="button" data-addsub="${cat.id}" aria-label="Aggiungi negozio">➕</button>
+                                <button class="icon-btn" type="button" data-delcat="${cat.id}" aria-label="Elimina categoria">🗑️</button>
+                            </div>
+                        </div>
+                        <div class="category-body ${isCatExpanded ? '' : 'collapsed'}">${body}</div>
+                    </div>`;
+        }
+
+        if (q) {
+            if (!totalFound) html = `<div class="list-empty">🔍 Nessun prodotto trovato per "${esc(searchQuery.trim())}"</div>`;
+        } else {
+            html += `<div class="add-category-btn" id="addCatBtn">+ Aggiungi categoria</div>`;
+        }
+        board.innerHTML = html;
+        renderCart();
+    }
+
+    // Un solo gestore per tutti i tocchi nell'elenco dei prodotti
+    (function bindBoard() {
+        let board = document.getElementById('board');
+        board.onclick = (e) => {
+            let el = e.target.closest('#addCatBtn,[data-toggle-sub],[data-addsub],[data-delcat],[data-delsub],[data-additem],[data-remove],[data-menu],[data-cart-add],[data-toggle-cat]');
+            if (!el) return;
+            let d = el.dataset;
+            if (el.id === 'addCatBtn') addCategory();
+            else if (d.toggleSub) { if (!searchQuery.trim()) toggleSubCategory(Number(d.toggleSub)); }
+            else if (d.addsub) addSubCategory(Number(d.addsub));
+            else if (d.delcat) deleteCategory(Number(d.delcat));
+            else if (d.delsub) { let [c, s] = d.delsub.split('|'); deleteSubCategory(Number(c), Number(s)); }
+            else if (d.additem) {
+                let inp = document.getElementById(`newInput-${d.additem}`);
+                if (inp && inp.value.trim()) addListItem(Number(d.additem), inp.value);
+                else if (inp) inp.focus();
+            }
+            else if (d.remove) removeListItem(Number(d.remove));
+            else if (d.menu) showProductModal(Number(d.menu));
+            else if (d.cartAdd) quickAdd(Number(d.cartAdd));
+            else if (d.toggleCat) {
+                if (e.target.closest('input') || searchQuery.trim()) return;
+                toggleCategory(Number(d.toggleCat));
+            }
+        };
+        board.onchange = (e) => {
+            let el = e.target;
+            if (!el || !el.classList) return;
+            if (el.classList.contains('category-title')) updateCategory(Number(el.dataset.cat), el.value);
+            else if (el.classList.contains('subcat-name')) updateSubCategory(Number(el.dataset.cat), Number(el.dataset.sub), el.value);
+            else if (el.classList.contains('list-text')) updateListItemText(Number(el.dataset.text), el.value);
+        };
+        board.onkeydown = (e) => {
+            let el = e.target;
+            if (e.key !== 'Enter' || !el || !el.dataset || !el.dataset.newitem) return;
+            e.preventDefault();
+            if (el.value.trim()) addListItem(Number(el.dataset.newitem), el.value);
+        };
+    })();
+
+    // ---------- RICERCA ----------
+    document.getElementById('searchInput').oninput = (e) => {
+        searchQuery = e.target.value || '';
+        document.getElementById('searchClear').style.display = searchQuery ? '' : 'none';
+        render();
+    };
+    document.getElementById('searchClear').onclick = () => {
+        let inp = document.getElementById('searchInput');
+        inp.value = '';
+        searchQuery = '';
+        document.getElementById('searchClear').style.display = 'none';
+        render();
+        inp.focus();
+    };
+
+    // ---------- COSE DA FARE ----------
+    const TODO_GROUPS = [
+        { key: 'late', title: '⚠️ In ritardo' },
+        { key: 'today', title: '📍 Oggi' },
+        { key: 'next', title: '📅 Prossime' },
+        { key: 'none', title: '📝 Senza data' },
+        { key: 'done', title: '✅ Fatte' }
+    ];
+
+    function parseDay(s) {
+        let [y, m, d] = s.split('-').map(Number);
+        return new Date(y, m - 1, d);
+    }
+
+    function todayDate() {
+        let d = new Date();
+        return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    }
+
+    function isoDay(d) {
+        return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+    }
+
+    // Momento della scadenza: con l'ora se c'è, altrimenti l'inizio del giorno
+    function dueMoment(t) {
+        if (!t.date) return null;
+        let d = parseDay(t.date);
+        if (t.time) { let [h, m] = t.time.split(':').map(Number); d.setHours(h, m, 0, 0); }
+        return d;
+    }
+
+    function dateInfo(t) {
+        if (!t.date) return { group: 'none', label: 'Aggiungi data' };
+        let d = parseDay(t.date), today = todayDate();
+        let diff = Math.round((d - today) / DAY);
+        let opts = { weekday: 'short', day: 'numeric', month: 'short' };
+        if (d.getFullYear() !== today.getFullYear()) opts.year = 'numeric';
+        let nice = d.toLocaleDateString('it-IT', opts);
+        if (diff < 0) return { group: 'late', label: diff === -1 ? 'Ieri' : nice };
+        if (diff === 0) return { group: (t.time && dueMoment(t) < new Date()) ? 'late' : 'today', label: 'Oggi' };
+        if (diff === 1) return { group: 'next', label: 'Domani' };
+        return { group: 'next', label: nice };
+    }
+
+    // Link che apre Google Calendar con l'evento già compilato
+    function gcalUrl(t) {
+        let d = parseDay(t.date);
+        let day = x => `${x.getFullYear()}${pad2(x.getMonth() + 1)}${pad2(x.getDate())}`;
+        let dates;
+        if (t.time) {
+            let start = dueMoment(t), end = new Date(start.getTime() + 3600000);
+            let stamp = x => `${day(x)}T${pad2(x.getHours())}${pad2(x.getMinutes())}00`;
+            dates = stamp(start) + '/' + stamp(end);
+        } else {
+            dates = day(d) + '/' + day(new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1));
+        }
+        return 'https://calendar.google.com/calendar/render?action=TEMPLATE&text=' + encodeURIComponent(t.text) + '&dates=' + dates;
+    }
+
+    // File .ics con tutte le cose da fare aperte che hanno una data
+    function buildIcs() {
+        let list = todos.filter(t => !t.done && t.date);
+        if (!list.length) return '';
+        let day = x => `${x.getFullYear()}${pad2(x.getMonth() + 1)}${pad2(x.getDate())}`;
+        let stamp = x => `${day(x)}T${pad2(x.getHours())}${pad2(x.getMinutes())}00`;
+        let now = new Date();
+        let utc = `${now.getUTCFullYear()}${pad2(now.getUTCMonth() + 1)}${pad2(now.getUTCDate())}T${pad2(now.getUTCHours())}${pad2(now.getUTCMinutes())}${pad2(now.getUTCSeconds())}Z`;
+        let escIcs = s => String(s).replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\r?\n/g, '\\n');
+        let lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//SpesaFlow//Cose da fare//IT', 'CALSCALE:GREGORIAN'];
+        for (let t of list) {
+            let d = parseDay(t.date);
+            lines.push('BEGIN:VEVENT', `UID:spesaflow-${t.id}@spesaflow`, `DTSTAMP:${utc}`, `SUMMARY:${escIcs(t.text)}`);
+            if (t.time) {
+                let start = dueMoment(t);
+                lines.push(`DTSTART:${stamp(start)}`, `DTEND:${stamp(new Date(start.getTime() + 3600000))}`);
+            } else {
+                lines.push(`DTSTART;VALUE=DATE:${day(d)}`, `DTEND;VALUE=DATE:${day(new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1))}`);
+            }
+            lines.push('END:VEVENT');
+        }
+        lines.push('END:VCALENDAR');
+        return lines.join('\r\n') + '\r\n';
+    }
+
+    function addTodo(text, date, time) {
+        text = text.trim();
+        if (!text) return false;
+        if (time && !date) date = isoDay(new Date());   // solo l'ora: si intende oggi
+        todos.push({ id: uid(), text, date: date || '', time: date ? (time || '') : '', done: false, notified: '', gcal: false });
+        save();
+        renderTodos();
+        return true;
+    }
+
+    function updateTodo(id, changes) {
+        let t = todos.find(t => t.id === id);
+        if (t) {
+            Object.assign(t, changes);
+            if (!t.date) t.time = '';
+        }
+        save();
+        renderTodos();
+    }
+
+    function removeTodo(id) {
+        todos = todos.filter(t => t.id !== id);
+        save();
+        renderTodos();
+    }
+
+    function clearDoneTodos() {
+        let n = todos.filter(t => t.done).length;
+        if (!n) return;
+        if (!confirm(`🗑️ Eliminare le cose già fatte (${n})?`)) return;
+        todos = todos.filter(t => !t.done);
+        save();
+        renderTodos();
+    }
+
+    function renderTodos() {
+        let list = document.getElementById('todoList');
+        let badge = document.getElementById('todoBadge');
+        if (!list || !badge) return;
+
+        let groups = { late: [], today: [], next: [], none: [], done: [] };
+        todos.forEach(t => groups[t.done ? 'done' : dateInfo(t).group].push(t));
+
+        let open = todos.length - groups.done.length;
+        badge.textContent = open;
+        badge.style.display = open ? '' : 'none';
+        badge.classList.toggle('late', groups.late.length > 0);
+
+        // Promemoria nella scheda Spesa
+        let banner = document.getElementById('todoBanner');
+        let parts = [];
+        if (groups.late.length) parts.push(`${groups.late.length} in ritardo`);
+        if (groups.today.length) parts.push(`${groups.today.length} per oggi`);
+        banner.style.display = parts.length ? '' : 'none';
+        banner.classList.toggle('late', groups.late.length > 0);
+        banner.textContent = parts.length ? `⏰ Cose da fare: ${parts.join(', ')} →` : '';
+
+        document.getElementById('icsBtn').style.display = todos.some(t => !t.done && t.date) ? '' : 'none';
+
+        if (!todos.length) {
+            list.innerHTML = '<div class="todo-empty">📝 Niente da fare per ora.<br>Scrivi qui sopra la prima cosa: data e ora sono facoltative.</div>';
+            return;
+        }
+
+        let html = '';
+        for (let g of TODO_GROUPS) {
+            let items = groups[g.key];
+            if (!items.length) continue;
+            let key = t => (t.date || '9999') + (t.time || '99:99');
+            items.sort((a, b) => key(a).localeCompare(key(b)) || byText(a.text, b.text));
+            html += `<div class="todo-group">
+                        <div class="todo-group-header ${g.key}">
+                            <span>${g.title} (${items.length})</span>
+                            ${g.key === 'done' ? '<button type="button" data-todo-cleardone="1">🗑️ Elimina fatte</button>' : ''}
+                        </div>`;
+            for (let t of items) {
+                let info = dateInfo(t);
+                html += `<div class="todo-card ${g.key}">
+                            <button class="todo-check" type="button" data-todo-check="${t.id}" aria-label="${t.done ? 'Segna come da fare' : 'Segna come fatta'}">${t.done ? '✓' : ''}</button>
+                            <div class="todo-main">
+                                <input class="todo-text" value="${esc(t.text)}" data-todo-text="${t.id}" aria-label="Testo">
+                                <div class="todo-meta">
+                                    <span class="todo-chip ${t.date ? '' : 'empty'}">📅 ${esc(info.label)}<input type="date" value="${esc(t.date)}" data-todo-date="${t.id}" aria-label="Data"></span>
+                                    ${t.date ? `<span class="todo-chip ${t.time ? '' : 'empty'}">🕒 ${t.time ? esc(t.time) : 'Ora'}<input type="time" value="${esc(t.time)}" data-todo-time="${t.id}" aria-label="Ora"></span>` : ''}
+                                    ${t.date ? `<button class="todo-date-clear" type="button" data-todo-nodate="${t.id}" aria-label="Togli data e ora">✕</button>` : ''}
+                                    ${t.date && !t.done ? `<a class="todo-gcal ${t.gcal ? 'sent' : ''}" href="${esc(gcalUrl(t))}" target="_blank" rel="noopener" data-todo-gcal="${t.id}" aria-label="Aggiungi a Google Calendar">${t.gcal ? '✓' : '➕'} Calendar</a>` : ''}
+                                </div>
+                            </div>
+                            <button class="remove-item" type="button" data-todo-remove="${t.id}" aria-label="Elimina">✖️</button>
+                        </div>`;
+            }
+            html += `</div>`;
+        }
+        list.innerHTML = html;
+    }
+
+    document.getElementById('todoList').onclick = (e) => {
+        let el = e.target.closest('[data-todo-check],[data-todo-remove],[data-todo-nodate],[data-todo-cleardone],[data-todo-date],[data-todo-time],[data-todo-gcal]');
+        if (!el) return;
+        let d = el.dataset;
+        if (d.todoCheck) {
+            let t = todos.find(t => t.id === Number(d.todoCheck));
+            if (t) updateTodo(t.id, { done: !t.done });
+        } else if (d.todoRemove) removeTodo(Number(d.todoRemove));
+        else if (d.todoNodate) updateTodo(Number(d.todoNodate), { date: '', time: '', gcal: false });
+        else if (d.todoCleardone) clearDoneTodos();
+        else if (d.todoGcal) {
+            // il link si apre da solo: qui si segna soltanto che è già stata inviata
+            let t = todos.find(t => t.id === Number(d.todoGcal));
+            if (t) { t.gcal = true; save(); setTimeout(renderTodos, 600); }
+        } else if ((d.todoDate || d.todoTime) && el.showPicker) {
+            try { el.showPicker(); } catch (err) { /* il browser apre da solo il selettore */ }
+        }
+    };
+    document.getElementById('todoList').onchange = (e) => {
+        let el = e.target;
+        if (!el || !el.dataset) return;
+        if (el.dataset.todoText) {
+            let text = el.value.trim();
+            if (text) updateTodo(Number(el.dataset.todoText), { text });
+            else renderTodos();
+        } else if (el.dataset.todoDate) {
+            updateTodo(Number(el.dataset.todoDate), { date: el.value || '', notified: '', gcal: false });
+        } else if (el.dataset.todoTime) {
+            updateTodo(Number(el.dataset.todoTime), { time: el.value || '', notified: '', gcal: false });
+        }
+    };
+
+    function submitNewTodo() {
+        let text = document.getElementById('todoText');
+        let date = document.getElementById('todoDate');
+        let time = document.getElementById('todoTime');
+        if (addTodo(text.value || '', date.value || '', time.value || '')) {
+            text.value = '';
+            date.value = '';
+            time.value = '';
+        }
+        text.focus();
+    }
+    document.getElementById('todoAddBtn').onclick = submitNewTodo;
+    document.getElementById('todoText').onkeydown = (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); submitNewTodo(); }
+    };
+    document.getElementById('todoBanner').onclick = () => setTab('todo');
+    document.getElementById('icsBtn').onclick = () => {
+        let ics = buildIcs();
+        if (!ics) return;
+        downloadFile(ics, 'text/calendar;charset=utf-8', 'spesaflow_cose_da_fare.ics');
+        showToast('✅ File creato: importalo in Google Calendar', 'success');
+    };
+
+    // ---------- AVVISI ALLA SCADENZA (solo mentre l'app è aperta) ----------
+    let lastDayChecked = isoDay(new Date());
+
+    function canNotify() {
+        return typeof Notification !== 'undefined';
+    }
+
+    function renderNotifyBtn() {
+        document.getElementById('notifyBtn').style.display = (canNotify() && Notification.permission === 'default') ? '' : 'none';
+    }
+
+    document.getElementById('notifyBtn').onclick = () => {
+        let done = () => {
+            renderNotifyBtn();
+            if (Notification.permission === 'granted') showToast('🔔 Avvisi attivi: arrivano solo mentre l\'app è aperta', 'success');
+            else if (Notification.permission === 'denied') showToast('Avvisi bloccati dal browser: vedrai solo quelli dentro l\'app');
+        };
+        try {
+            let r = Notification.requestPermission(done);
+            if (r && r.then) r.then(done, done);
+        } catch (e) {
+            document.getElementById('notifyBtn').style.display = 'none';
+        }
+    };
+
+    function checkDue() {
+        let now = new Date();
+        let due = [];
+        todos.forEach(t => {
+            if (t.done || !t.date || !t.time) return;
+            let key = t.date + 'T' + t.time;
+            if (t.notified === key || dueMoment(t) > now) return;
+            t.notified = key;
+            due.push(t);
+        });
+        let today = isoDay(now);
+        let dayChanged = today !== lastDayChecked;
+        lastDayChecked = today;
+        if (due.length) {
+            save();
+            let msg = due.length === 1 ? `${due[0].text} (${due[0].time})` : `${due.length} cose da fare in scadenza`;
+            showToast('⏰ ' + msg);
+            if (canNotify() && Notification.permission === 'granted') {
+                try { new Notification('⏰ Cose da fare', { body: msg }); } catch (e) { /* su alcuni telefoni non è permesso: resta l'avviso nell'app */ }
+            }
+        }
+        if (due.length || dayChanged) renderTodos();
+    }
+
+    // ---------- SCHEDE ----------
+    function setTab(tab) {
+        let todo = tab === 'todo';
+        document.getElementById('viewSpesa').style.display = todo ? 'none' : '';
+        document.getElementById('viewTodo').style.display = todo ? '' : 'none';
+        document.getElementById('tabSpesa').classList.toggle('active', !todo);
+        document.getElementById('tabTodo').classList.toggle('active', todo);
+        if (todo) renderTodos();
+        lsSet('spesaflow_tab', todo ? 'todo' : 'spesa');
+    }
+    document.getElementById('tabSpesa').onclick = () => setTab('spesa');
+    document.getElementById('tabTodo').onclick = () => setTab('todo');
+
+    // ---------- PULSANTI IN ALTO ----------
+    document.getElementById('resetBtn').onclick = () => {
+        if (!confirm('⚠️ Reset eliminerà tutti i dati (spesa e cose da fare). Continuare?')) return;
+        loadDefaults();
+        commit();
+        showToast('✅ Reset completato', 'success');
+    };
+
+    document.getElementById('clearCartBtn').onclick = () => {
+        if (!cart.length) return;
+        if (!confirm('🗑️ Svuotare tutto il carrello?')) return;
+        clearCart();
+        showToast('✅ Carrello svuotato', 'success');
+    };
+
+    document.getElementById('finishBtn').onclick = finishShopping;
+    document.getElementById('shareBtn').onclick = shareCart;
+    document.getElementById('backupBtn').onclick = backupData;
+    document.getElementById('restoreBtn').onclick = () => document.getElementById('fileInput').click();
+    document.getElementById('fileInput').onchange = (e) => {
+        if (e.target.files.length > 0) {
+            restoreData(e.target.files[0]);
+            e.target.value = '';
+        }
+    };
+
+    // ---------- CARICAMENTO DATI ----------
+    (function init() {
+        let loaded = false;
+        try {
+            let raw = localStorage.getItem(STORAGE_KEY);
+            if (raw) {
+                let p = JSON.parse(raw);
+                categories = p.categories;
+                notes = p.notes;
+                cart = p.cart;
+                todos = p.todos;
+                normalizeData();
+                loadUiState();
+                loaded = true;
+            }
+        } catch (e) {
+            loaded = false;
+        }
+        if (!loaded) loadDefaults();
+        commit();
+        setTab(lsGet('spesaflow_tab') === 'todo' ? 'todo' : 'spesa');
+        renderBackupBanner();
+        renderNotifyBtn();
+        checkDue();
+        setInterval(checkDue, 30000);
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) { checkDue(); renderBackupBanner(); }
+        });
+    })();
+</script>
+</body>
+</html>
