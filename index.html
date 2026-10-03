@@ -1031,6 +1031,13 @@
             cursor: pointer;
             min-height: 34px;
         }
+        .btn-sync { background: #e8f0fe; color: #1a73e8; }
+        .sync-text { font-size: 0.8rem; color: #5f6368; line-height: 1.45; margin-top: 8px; }
+        .sync-steps { font-size: 0.8rem; color: #202124; line-height: 1.5; margin: 10px 0 0 18px; }
+        .sync-steps a { color: #1a73e8; font-weight: 600; }
+        .sync-status { background: #f8f9fa; border-radius: 14px; padding: 10px 12px; font-size: 0.8rem; color: #202124; margin-top: 10px; line-height: 1.45; }
+        .sync-error { color: #d93025; font-size: 0.78rem; margin-top: 8px; min-height: 1em; }
+        .qty-modal .modal-actions button:disabled { opacity: 0.5; }
     </style>
 </head>
 <body>
@@ -1038,6 +1045,7 @@
     <div class="header">
         <div class="logo"><span>🛒</span><h1>SpesaFlow</h1></div>
         <div class="header-actions">
+            <button class="btn-header btn-sync" id="syncBtn" type="button">☁️ Sync</button>
             <button class="btn-header btn-backup" id="backupBtn">💾 Backup</button>
             <button class="btn-header btn-restore" id="restoreBtn">📂 Ripristina</button>
             <button class="btn-header btn-reset" id="resetBtn">⟳ Reset</button>
@@ -1114,6 +1122,12 @@
     let expandedCategories = new Set();
     let expandedSubCategories = new Set();
     let searchQuery = '';
+    let dataUpdatedAt = 0;   // momento dell'ultima modifica dei dati (serve alla sincronizzazione)
+
+    // Sincronizzazione: chiave e archivio restano salvati solo in questo browser
+    const SYNC_FILE = 'spesaflow_data.json';
+    let sync = { token: '', gistId: '', base: 0, dirty: false, lastOk: 0 };
+    let syncState = 'off', syncError = '', syncing = false, syncAgain = false, pushTimer = null;
 
     // ---------- UTILITÀ ----------
     function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
@@ -1218,11 +1232,28 @@
         notes = result;
     }
 
-    function save() {
+    function payload() {
+        return JSON.stringify({ categories, notes, cart, todos, updatedAt: dataUpdatedAt });
+    }
+
+    // Scrive su questo dispositivo senza segnare una modifica
+    function writeLocal() {
         try {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify({ categories, notes, cart, todos }));
+            localStorage.setItem(STORAGE_KEY, payload());
         } catch (e) {
             showToast('❌ Impossibile salvare: ' + e.message, 'error');
+        }
+    }
+
+    // Salva una modifica fatta dall'utente (e la manda online, se la sincronizzazione è attiva)
+    function save() {
+        dataUpdatedAt = Date.now();
+        writeLocal();
+        if (syncOn()) {
+            sync.dirty = true;
+            saveSync();
+            clearTimeout(pushTimer);
+            pushTimer = setTimeout(syncNow, 2000);
         }
     }
 
@@ -1322,7 +1353,6 @@
                     date,
                     time: (date && /^\d{2}:\d{2}$/.test(t.time)) ? t.time : '',
                     done: !!t.done,
-                    notified: t.notified ? String(t.notified) : '',
                     gcal: !!t.gcal
                 };
             });
@@ -2067,7 +2097,7 @@
         text = text.trim();
         if (!text) return false;
         if (time && !date) date = isoDay(new Date());   // solo l'ora: si intende oggi
-        todos.push({ id: uid(), text, date: date || '', time: date ? (time || '') : '', done: false, notified: '', gcal: false });
+        todos.push({ id: uid(), text, date: date || '', time: date ? (time || '') : '', done: false, gcal: false });
         save();
         renderTodos();
         return true;
@@ -2185,9 +2215,9 @@
             if (text) updateTodo(Number(el.dataset.todoText), { text });
             else renderTodos();
         } else if (el.dataset.todoDate) {
-            updateTodo(Number(el.dataset.todoDate), { date: el.value || '', notified: '', gcal: false });
+            updateTodo(Number(el.dataset.todoDate), { date: el.value || '', gcal: false });
         } else if (el.dataset.todoTime) {
-            updateTodo(Number(el.dataset.todoTime), { time: el.value || '', notified: '', gcal: false });
+            updateTodo(Number(el.dataset.todoTime), { time: el.value || '', gcal: false });
         }
     };
 
@@ -2242,18 +2272,22 @@
     function checkDue() {
         let now = new Date();
         let due = [];
+        // gli avvisi già mostrati si ricordano solo su questo dispositivo
+        let seen = {};
+        try { seen = JSON.parse(lsGet('spesaflow_notified') || '{}') || {}; } catch (e) { seen = {}; }
         todos.forEach(t => {
             if (t.done || !t.date || !t.time) return;
             let key = t.date + 'T' + t.time;
-            if (t.notified === key || dueMoment(t) > now) return;
-            t.notified = key;
+            if (seen[t.id] === key || dueMoment(t) > now) return;
+            seen[t.id] = key;
             due.push(t);
         });
         let today = isoDay(now);
         let dayChanged = today !== lastDayChecked;
         lastDayChecked = today;
         if (due.length) {
-            save();
+            Object.keys(seen).forEach(id => { if (!todos.some(t => String(t.id) === id)) delete seen[id]; });
+            lsSet('spesaflow_notified', JSON.stringify(seen));
             let msg = due.length === 1 ? `${due[0].text} (${due[0].time})` : `${due.length} cose da fare in scadenza`;
             showToast('⏰ ' + msg);
             if (canNotify() && Notification.permission === 'granted') {
@@ -2262,6 +2296,243 @@
         }
         if (due.length || dayChanged) renderTodos();
     }
+
+    // ---------- SINCRONIZZAZIONE TRA DISPOSITIVI (archivio privato "Gist" su GitHub) ----------
+    function syncOn() {
+        return !!(sync.token && sync.gistId);
+    }
+
+    function loadSync() {
+        try {
+            let s = JSON.parse(lsGet('spesaflow_sync') || '{}') || {};
+            sync = { token: s.token || '', gistId: s.gistId || '', base: Number(s.base) || 0, dirty: !!s.dirty, lastOk: Number(s.lastOk) || 0 };
+        } catch (e) { /* resta scollegata */ }
+    }
+
+    function saveSync() {
+        lsSet('spesaflow_sync', JSON.stringify(sync));
+    }
+
+    function fmtMoment(ts) {
+        return new Date(ts).toLocaleString('it-IT', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+    }
+
+    function syncStatusText() {
+        if (syncState === 'busy') return '⏳ Sincronizzazione in corso…';
+        if (syncState === 'error') return '⚠️ ' + syncError;
+        if (syncState === 'ok') return '✅ Sincronizzata' + (sync.lastOk ? ` (ultimo controllo: ${fmtMoment(sync.lastOk)})` : '');
+        return 'Non attiva';
+    }
+
+    function setSyncState(state, msg) {
+        syncState = state;
+        syncError = msg || '';
+        let btn = document.getElementById('syncBtn');
+        btn.textContent = ({ off: '☁️', busy: '⏳', ok: '✅', error: '⚠️' }[state] || '☁️') + ' Sync';
+        let line = document.getElementById('syncStatusLine');
+        if (line) line.textContent = syncStatusText();
+    }
+
+    function syncErrorText(e) {
+        if (e && (e.status === 401 || e.status === 403)) return 'La chiave non è valida o è scaduta';
+        if (e && e.status === 404) return 'Archivio online non trovato';
+        return 'Nessuna connessione: riprovo appena possibile';
+    }
+
+    async function gh(path, opts) {
+        opts = opts || {};
+        let headers = { 'Accept': 'application/vnd.github+json', 'Authorization': 'Bearer ' + sync.token };
+        if (opts.body) headers['Content-Type'] = 'application/json';
+        let r = await fetch('https://api.github.com' + path, { method: opts.method || 'GET', body: opts.body, headers, cache: 'no-store' });
+        if (!r.ok) { let e = new Error('HTTP ' + r.status); e.status = r.status; throw e; }
+        return r.json();
+    }
+
+    async function readRemote() {
+        let g = await gh('/gists/' + sync.gistId);
+        let f = g.files && g.files[SYNC_FILE];
+        if (!f) return null;
+        let text = f.content;
+        if (f.truncated && f.raw_url) text = await (await fetch(f.raw_url, { cache: 'no-store' })).text();
+        try {
+            let d = JSON.parse(text);
+            return (d && Array.isArray(d.categories) && Array.isArray(d.notes)) ? d : null;
+        } catch (e) { return null; }
+    }
+
+    async function pushRemote() {
+        let at = dataUpdatedAt;
+        await gh('/gists/' + sync.gistId, { method: 'PATCH', body: JSON.stringify({ files: { [SYNC_FILE]: { content: payload() } } }) });
+        sync.base = at;
+        sync.dirty = dataUpdatedAt !== at;   // modifiche fatte durante l'invio: partono al prossimo giro
+    }
+
+    // Sostituisce i dati di questo dispositivo con quelli online
+    function applyRemote(r) {
+        categories = r.categories;
+        notes = r.notes;
+        cart = r.cart;
+        todos = r.todos;
+        normalizeData();
+        dataUpdatedAt = Number(r.updatedAt) || Date.now();
+        sync.base = dataUpdatedAt;
+        sync.dirty = false;
+        writeLocal();
+        loadUiState();
+        render();
+        renderTodos();
+    }
+
+    // Regola: se entrambe le parti sono cambiate, vince la modifica più recente
+    async function syncNow() {
+        if (!syncOn()) return;
+        if (syncing) { syncAgain = true; return; }
+        syncing = true;
+        clearTimeout(pushTimer);
+        setSyncState('busy');
+        try {
+            let r = await readRemote();
+            if (!r) await pushRemote();
+            else if (sync.dirty) {
+                if ((Number(r.updatedAt) || 0) > dataUpdatedAt) applyRemote(r);
+                else await pushRemote();
+            }
+            else if ((Number(r.updatedAt) || 0) !== sync.base) applyRemote(r);
+            sync.lastOk = Date.now();
+            saveSync();
+            setSyncState('ok');
+        } catch (e) {
+            setSyncState('error', syncErrorText(e));
+        }
+        syncing = false;
+        if (syncAgain || sync.dirty) { syncAgain = false; clearTimeout(pushTimer); pushTimer = setTimeout(syncNow, 1500); }
+    }
+
+    function disconnectSync() {
+        clearTimeout(pushTimer);
+        sync = { token: '', gistId: '', base: 0, dirty: false, lastOk: 0 };
+        saveSync();
+        setSyncState('off');
+    }
+
+    // Primo collegamento: cerca l'archivio esistente, altrimenti lo crea con i dati di questo dispositivo
+    async function connectSync(token) {
+        sync = { token, gistId: '', base: 0, dirty: false, lastOk: 0 };
+        let list = await gh('/gists?per_page=100');
+        let found = Array.isArray(list) ? list.find(g => g.files && g.files[SYNC_FILE]) : null;
+        if (found) {
+            sync.gistId = found.id;
+            let r = await readRemote();
+            if (r) return r;   // esistono già dati online: decide l'utente quali tenere
+            if (!dataUpdatedAt) dataUpdatedAt = Date.now();
+            await pushRemote();
+        } else {
+            if (!dataUpdatedAt) dataUpdatedAt = Date.now();
+            let g = await gh('/gists', { method: 'POST', body: JSON.stringify({ description: 'SpesaFlow - dati sincronizzati', public: false, files: { [SYNC_FILE]: { content: payload() } } }) });
+            sync.gistId = g.id;
+            sync.base = dataUpdatedAt;
+        }
+        writeLocal();
+        sync.lastOk = Date.now();
+        saveSync();
+        setSyncState('ok');
+        return null;
+    }
+
+    function showSyncChoice(remote) {
+        let overlay = openModal(`
+            <h3>☁️ Dati già presenti online</h3>
+            <div class="sync-text">Nel tuo account ci sono già dati di SpesaFlow${remote.updatedAt ? ` (ultima modifica: ${esc(fmtMoment(remote.updatedAt))})` : ''}. Quali vuoi tenere?</div>
+            <div class="modal-actions"><button class="btn-confirm c-remote" type="button">⬇️ Usa i dati online</button></div>
+            <div class="sync-text">I dati di questo dispositivo vengono sostituiti.</div>
+            <div class="modal-actions"><button class="btn-delete c-local" type="button">⬆️ Usa i dati di questo dispositivo</button></div>
+            <div class="sync-text">I dati online (e degli altri dispositivi) vengono sostituiti.</div>
+            <div class="modal-actions"><button class="btn-cancel c-cancel" type="button">Annulla</button></div>`);
+        overlay.onclick = null;   // qui bisogna scegliere
+        let finish = (msg) => {
+            sync.lastOk = Date.now();
+            saveSync();
+            setSyncState('ok');
+            overlay.remove();
+            showToast(msg, 'success');
+        };
+        overlay.querySelector('.c-remote').onclick = () => { applyRemote(remote); finish('✅ Dati online caricati'); };
+        overlay.querySelector('.c-local').onclick = async () => {
+            try {
+                dataUpdatedAt = Date.now();
+                writeLocal();
+                await pushRemote();
+                finish('✅ Dati di questo dispositivo caricati online');
+            } catch (e) {
+                disconnectSync();
+                overlay.remove();
+                showToast('❌ ' + syncErrorText(e), 'error');
+            }
+        };
+        overlay.querySelector('.c-cancel').onclick = () => { disconnectSync(); overlay.remove(); };
+    }
+
+    function showSyncModal() {
+        if (syncOn()) {
+            let overlay = openModal(`
+                <h3>☁️ Sincronizzazione</h3>
+                <div class="sync-status" id="syncStatusLine">${esc(syncStatusText())}</div>
+                <div class="sync-text">Le modifiche vengono inviate da sole dopo un paio di secondi e scaricate quando apri l'app. Per collegare un altro dispositivo, apri lì l'app e inserisci la stessa chiave.</div>
+                <div class="modal-actions">
+                    <button class="btn-confirm s-now" type="button">🔄 Sincronizza ora</button>
+                    <button class="btn-delete s-off" type="button">Scollega</button>
+                </div>
+                <div class="modal-actions"><button class="btn-cancel s-close" type="button">Chiudi</button></div>`);
+            overlay.querySelector('.s-now').onclick = syncNow;
+            overlay.querySelector('.s-off').onclick = () => {
+                if (!confirm('Scollegare questo dispositivo? I dati restano sia qui sia online, ma non verranno più sincronizzati.')) return;
+                disconnectSync();
+                overlay.remove();
+            };
+            overlay.querySelector('.s-close').onclick = () => overlay.remove();
+            return;
+        }
+        let overlay = openModal(`
+            <h3>☁️ Sincronizzazione</h3>
+            <div class="sync-text">I dati vengono salvati in un archivio privato del tuo account GitHub, così li ritrovi su tutti i dispositivi. Serve una chiave di accesso, da creare una volta sola:</div>
+            <ol class="sync-steps">
+                <li><a href="https://github.com/settings/tokens/new?scopes=gist&amp;description=SpesaFlow" target="_blank" rel="noopener">Apri la pagina di GitHub per creare la chiave</a></li>
+                <li>Scegli la scadenza, premi "Generate token" e copia la chiave</li>
+                <li>Incollala qui sotto, su ogni dispositivo</li>
+            </ol>
+            <label class="modal-field">Chiave di accesso
+                <input type="text" class="s-token" placeholder="ghp_..." autocomplete="off" autocapitalize="off" spellcheck="false">
+            </label>
+            <div class="sync-error" role="alert"></div>
+            <div class="modal-actions">
+                <button class="btn-cancel s-close" type="button">Annulla</button>
+                <button class="btn-confirm s-connect" type="button">Collega</button>
+            </div>`);
+        let input = overlay.querySelector('.s-token');
+        let err = overlay.querySelector('.sync-error');
+        let btn = overlay.querySelector('.s-connect');
+        overlay.querySelector('.s-close').onclick = () => overlay.remove();
+        btn.onclick = async () => {
+            let token = input.value.trim();
+            if (!token) { err.textContent = 'Incolla la chiave creata su GitHub'; return; }
+            btn.disabled = true;
+            btn.textContent = 'Collegamento…';
+            err.textContent = '';
+            try {
+                let remote = await connectSync(token);
+                overlay.remove();
+                if (remote) showSyncChoice(remote);
+                else showToast('✅ Sincronizzazione attiva', 'success');
+            } catch (e) {
+                disconnectSync();
+                err.textContent = syncErrorText(e) + (e && e.status === 404 ? '' : '. Controlla la chiave e riprova.');
+                btn.disabled = false;
+                btn.textContent = 'Collega';
+            }
+        };
+        input.focus();
+    }
+    document.getElementById('syncBtn').onclick = showSyncModal;
 
     // ---------- SCHEDE ----------
     function setTab(tab) {
@@ -2278,7 +2549,7 @@
 
     // ---------- PULSANTI IN ALTO ----------
     document.getElementById('resetBtn').onclick = () => {
-        if (!confirm('⚠️ Reset eliminerà tutti i dati (spesa e cose da fare). Continuare?')) return;
+        if (!confirm('⚠️ Reset eliminerà tutti i dati (spesa e cose da fare)' + (syncOn() ? ', anche sugli altri dispositivi sincronizzati' : '') + '. Continuare?')) return;
         loadDefaults();
         commit();
         showToast('✅ Reset completato', 'success');
@@ -2313,6 +2584,7 @@
                 notes = p.notes;
                 cart = p.cart;
                 todos = p.todos;
+                dataUpdatedAt = Number(p.updatedAt) || 0;
                 normalizeData();
                 loadUiState();
                 loaded = true;
@@ -2321,14 +2593,24 @@
             loaded = false;
         }
         if (!loaded) loadDefaults();
-        commit();
+        // primo disegno: non conta come modifica, altrimenti aprire l'app sovrascriverebbe i dati online
+        ensureContainers();
+        pruneCart();
+        writeLocal();
+        render();
+        renderTodos();
+        loadSync();
+        setSyncState(syncOn() ? 'ok' : 'off');
+        syncNow();
+        setInterval(() => { if (!document.hidden) syncNow(); }, 60000);
+        window.addEventListener('online', syncNow);
         setTab(lsGet('spesaflow_tab') === 'todo' ? 'todo' : 'spesa');
         renderBackupBanner();
         renderNotifyBtn();
         checkDue();
         setInterval(checkDue, 30000);
         document.addEventListener('visibilitychange', () => {
-            if (!document.hidden) { checkDue(); renderBackupBanner(); }
+            if (!document.hidden) { checkDue(); renderBackupBanner(); syncNow(); }
         });
     })();
 </script>
