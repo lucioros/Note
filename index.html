@@ -1243,6 +1243,41 @@
         .modal-row .modal-field { flex: 1; min-width: 0; }
         .modal-check { display: flex; align-items: center; gap: 8px; margin-top: 12px; font-size: 0.85rem; color: #202124; cursor: pointer; }
         .modal-check input { width: 20px; height: 20px; }
+        .rem-box { margin-top: 12px; background: #f8f9fa; border-radius: 14px; padding: 10px; }
+        .rem-title { font-size: 0.8rem; font-weight: 600; color: #202124; margin-bottom: 6px; }
+        .rem-box select, .rem-box input {
+            border: 1px solid #dadce0;
+            border-radius: 10px;
+            padding: 6px 8px;
+            font-size: 0.82rem;
+            font-family: inherit;
+            background: white;
+            color: #202124;
+            min-height: 36px;
+            outline: none;
+        }
+        .rem-box select:focus, .rem-box input:focus { border-color: #1a73e8; }
+        .rem-mode { width: 100%; }
+        .rem-row { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin-top: 6px; font-size: 0.78rem; color: #5f6368; }
+        .rem-row input[type=number] { width: 62px; }
+        .rem-row input[type=time] { width: 104px; }
+        .rem-del { border: none; background: none; color: #9aa0a6; min-width: 30px; min-height: 30px; cursor: pointer; font-size: 0.85rem; }
+        .rem-add {
+            margin-top: 8px;
+            border: 1px dashed #dadce0;
+            background: white;
+            border-radius: 20px;
+            padding: 6px 12px;
+            color: #1a73e8;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            min-height: 32px;
+        }
+        .rem-hint { font-size: 0.7rem; color: #5f6368; margin-top: 6px; line-height: 1.4; }
+        .cal-add #calRemBtn { background: #e8eaed; color: #202124; min-width: 42px; }
+        .cal-add #calRemBtn.on { background: #fef7e0; }
+        .cal-day > .rem-box { margin-top: 8px; }
         .gcal-note {
             background: #fef7e0;
             color: #7a4f01;
@@ -1572,7 +1607,8 @@
                     gEventId: t.gEventId ? String(t.gEventId) : '',   // evento collegato su Google Calendar
                     gSynced: t.gSynced ? String(t.gSynced) : '',      // versione dell'evento all'ultimo allineamento
                     gSkip: !!t.gSkip,                                 // da non mettere su Google Calendar
-                    mod: Number(t.mod) || 0                           // ultima modifica fatta nell'app
+                    mod: Number(t.mod) || 0,                          // ultima modifica fatta nell'app
+                    rem: normRem(t.rem)                               // notifiche: null = predefinite di Google
                 };
             });
         if (!Array.isArray(gDeletes)) gDeletes = [];
@@ -2316,11 +2352,18 @@
         return lines.join('\r\n') + '\r\n';
     }
 
-    function addTodo(text, date, time) {
+    // Notifiche di Google Calendar: null = quelle predefinite, [] = nessuna, altrimenti minuti di anticipo (max 5)
+    function normRem(rem) {
+        if (!Array.isArray(rem)) return null;
+        let list = rem.map(Number).filter(n => Number.isFinite(n) && n >= 0 && n <= 40320).map(n => Math.round(n));
+        return [...new Set(list)].sort((a, b) => a - b).slice(0, 5);
+    }
+
+    function addTodo(text, date, time, rem) {
         text = text.trim();
         if (!text) return false;
         if (time && !date) date = isoDay(new Date());   // solo l'ora: si intende oggi
-        todos.push({ id: uid(), text, date: date || '', time: date ? (time || '') : '', done: false, gcal: false, gEventId: '', gSynced: '', gSkip: false, mod: Date.now() });
+        todos.push({ id: uid(), text, date: date || '', time: date ? (time || '') : '', done: false, gcal: false, gEventId: '', gSynced: '', gSkip: false, mod: Date.now(), rem: normRem(rem) });
         save();
         renderTodos();
         gcalSoon();
@@ -2330,7 +2373,7 @@
     function updateTodo(id, changes) {
         let t = todos.find(t => t.id === id);
         if (t) {
-            if (['text', 'date', 'time', 'done'].some(k => k in changes && changes[k] !== t[k])) t.mod = Date.now();
+            if (['text', 'date', 'time', 'done', 'rem'].some(k => k in changes && JSON.stringify(changes[k]) !== JSON.stringify(t[k]))) t.mod = Date.now();
             Object.assign(t, changes);
             if (!t.date) t.time = '';
         }
@@ -2483,8 +2526,10 @@
         html += `<div class="cal-add">
                     <input type="text" id="calNewText" placeholder="Nuova attività in questo giorno..." enterkeyhint="done" aria-label="Nuova attività">
                     <input type="time" id="calNewTime" aria-label="Ora (facoltativa)">
+                    ${gLinked() ? `<button type="button" id="calRemBtn" class="${calNewRem !== null ? 'on' : ''}" aria-label="Notifiche su Google Calendar">🔔</button>` : ''}
                     <button type="button" id="calAddBtn" aria-label="Aggiungi">➕</button>
                 </div>
+                ${gLinked() ? `<div class="rem-box" id="calRemBox" style="${calRemOpen ? '' : 'display:none;'}"></div>` : ''}
             </div>`;
 
         // Attività rimaste indietro e attività senza data
@@ -2494,13 +2539,121 @@
         if (late.length) html += `<div class="cal-day"><div class="cal-section late">⚠️ In ritardo (${late.length})</div>${late.map(t => calRow(t, true)).join('')}</div>`;
         if (undated.length) html += `<div class="cal-day"><div class="cal-section">📝 Senza data (${undated.length})</div>${undated.map(t => calRow(t, true)).join('')}<div class="cal-empty">Tocca un'attività per darle una data.</div></div>`;
         box.innerHTML = html;
+        let remBox = document.getElementById('calRemBox');
+        calRemCtl = remBox ? bindRemEditor(remBox, () => !!(document.getElementById('calNewTime') || {}).value, calNewRem, (st) => {
+            calNewRem = st;
+            let b = document.getElementById('calRemBtn');
+            if (b) b.classList.toggle('on', st !== null);
+        }) : null;
     }
+
+    // ---------- NOTIFICHE DI GOOGLE CALENDAR ----------
+    const REM_UNITS = [['minuti', 1], ['ore', 60], ['giorni', 1440], ['settimane', 10080]];
+
+    function remRowTimed(m, i) {
+        let f = 1;
+        for (let [, size] of REM_UNITS) if (m >= size && m % size === 0) f = size;
+        return `<div class="rem-row">
+                <input type="number" class="rem-n" min="0" max="${40320 / f}" value="${m / f}" inputmode="numeric" aria-label="Quanto prima">
+                <select class="rem-u" aria-label="Unità">${REM_UNITS.map(([u, size]) => `<option value="${size}" ${size === f ? 'selected' : ''}>${u}</option>`).join('')}</select>
+                <span>prima</span>
+                <button type="button" class="rem-del" data-rem-del="${i}" aria-label="Togli notifica">✖</button>
+            </div>`;
+    }
+
+    // Attività senza orario: l'evento inizia a mezzanotte, quindi "N giorni prima alle HH:MM"
+    function remRowAllDay(m, i) {
+        let days = Math.ceil(m / 1440);
+        let mins = days * 1440 - m;
+        return `<div class="rem-row">
+                <input type="number" class="rem-d" min="0" max="28" value="${days}" inputmode="numeric" aria-label="Giorni prima">
+                <span>giorni prima alle</span>
+                <input type="time" class="rem-t" value="${pad2(Math.floor(mins / 60))}:${pad2(mins % 60)}" aria-label="Ora">
+                <button type="button" class="rem-del" data-rem-del="${i}" aria-label="Togli notifica">✖</button>
+            </div>`;
+    }
+
+    function remEditorHtml(rem, timed) {
+        let mode = rem === null ? 'default' : (rem.length ? 'custom' : 'none');
+        let html = `<div class="rem-title">🔔 Notifiche su Google Calendar</div>
+            <select class="rem-mode" aria-label="Tipo di notifiche">
+                <option value="default" ${mode === 'default' ? 'selected' : ''}>Quelle predefinite di Google</option>
+                <option value="custom" ${mode === 'custom' ? 'selected' : ''}>Scelgo io</option>
+                <option value="none" ${mode === 'none' ? 'selected' : ''}>Nessuna notifica</option>
+            </select>`;
+        if (mode === 'custom') {
+            html += rem.map((m, i) => timed ? remRowTimed(m, i) : remRowAllDay(m, i)).join('');
+            if (rem.length < 5) html += `<button type="button" class="rem-add" data-rem-add="1">+ Aggiungi notifica</button>`;
+            if (!timed) html += `<div class="rem-hint">Senza orario l'evento dura tutto il giorno: le notifiche possono arrivare al più tardi a mezzanotte del giorno stesso (0 giorni prima alle 00:00).</div>`;
+        }
+        return html;
+    }
+
+    // Legge le righe nell'ordine in cui sono mostrate
+    function readRemRows(box, timed) {
+        return [...box.querySelectorAll('.rem-row')].map(row => {
+            if (timed) {
+                let n = parseFloat(row.querySelector('.rem-n').value);
+                let f = Number(row.querySelector('.rem-u').value) || 1;
+                return isNaN(n) ? null : Math.round(n * f);
+            }
+            let d = parseInt(row.querySelector('.rem-d').value);
+            let [h, mi] = (row.querySelector('.rem-t').value || '09:00').split(':').map(Number);
+            if (isNaN(d)) return null;
+            return Math.max(0, d * 1440 - (h * 60 + mi));
+        }).filter(n => n !== null);
+    }
+
+    function bindRemEditor(box, isTimed, initial, onChange) {
+        let state = normRem(initial);
+        let read = () => {
+            let modeEl = box.querySelector('.rem-mode');
+            let mode = modeEl ? modeEl.value : 'default';
+            if (mode === 'default') return null;
+            if (mode === 'none') return [];
+            return normRem(readRemRows(box, isTimed()));
+        };
+        let draw = () => { box.innerHTML = remEditorHtml(state, isTimed()); };
+        let update = (s) => { state = normRem(s); if (onChange) onChange(state); };
+        box.onchange = (e) => {
+            if (e.target.classList.contains('rem-mode')) {
+                let mode = e.target.value;
+                update(mode === 'default' ? null : mode === 'none' ? [] : (state && state.length ? state : [isTimed() ? 30 : 900]));
+                draw();
+            } else {
+                update(read());
+            }
+        };
+        box.onclick = (e) => {
+            let add = e.target.closest('[data-rem-add]');
+            let del = e.target.closest('[data-rem-del]');
+            if (!add && !del) return;
+            let rows = readRemRows(box, isTimed());
+            if (add) {
+                let options = isTimed() ? [10, 30, 60, 120, 1440, 2880, 10080] : [900, 2340, 3780, 9540];
+                // la nuova notifica va in fondo: un anticipo più lungo di quelli già scelti
+                let longest = rows.length ? Math.max(...rows) : -1;
+                rows.push(options.find(o => o > longest) || options.find(o => !rows.includes(o)) || 0);
+            } else {
+                rows.splice(Number(del.dataset.remDel), 1);
+            }
+            update(rows);
+            draw();
+        };
+        draw();
+        return { get: () => read(), redraw: () => { state = read(); draw(); } };
+    }
+
+    let calNewRem = null, calRemOpen = false, calRemCtl = null;
 
     function addFromCalendar() {
         let text = document.getElementById('calNewText');
         let time = document.getElementById('calNewTime');
         if (!text.value.trim()) { text.focus(); return; }
-        addTodo(text.value, calSelected, time.value || '');
+        let rem = gLinked() ? calNewRem : null;
+        calNewRem = null;
+        calRemOpen = false;
+        addTodo(text.value, calSelected, time.value || '', rem);
         let again = document.getElementById('calNewText');
         if (again) again.focus();   // per inserirne più di fila
     }
@@ -2524,6 +2677,7 @@
                 </label>
             </div>
             <label class="modal-check"><input type="checkbox" class="m-done" ${t.done ? 'checked' : ''}> Fatta</label>
+            ${gLinked() ? '<div class="rem-box m-rem"></div>' : ''}
             ${gcalModalHtml(t, googleDay)}
             <div class="sync-error" role="alert"></div>
             <div class="modal-actions">
@@ -2551,7 +2705,7 @@
             let wasSent = t.gcal;
             overlay.remove();
             if (date) { calSelected = date; showMonthOf(date); }
-            updateTodo(t.id, { text, date, time, done: q('.m-done').checked, gcal: (changed && !gLinked()) ? false : t.gcal });
+            updateTodo(t.id, { text, date, time, done: q('.m-done').checked, gcal: (changed && !gLinked()) ? false : t.gcal, rem: remCtl ? remCtl.get() : t.rem });
             if (changed && wasSent) showToast('📆 Ricorda di aggiornare l\'evento anche su Google Calendar');
         };
         // Invio a Google Calendar: salva anche le modifiche fatte nella finestra
@@ -2573,6 +2727,8 @@
                 updateTodo(t.id, { text, date, time, done: q('.m-done').checked, gcal: true });
             }, 0);
         };
+        let remCtl = q('.m-rem') ? bindRemEditor(q('.m-rem'), () => !!q('.m-time').value, t.rem) : null;
+        if (remCtl) q('.m-time').onchange = () => remCtl.redraw();
         let link = q('.m-link');
         if (link) link.onclick = (e) => {
             e.preventDefault();
@@ -2585,6 +2741,13 @@
     }
 
     document.getElementById('calBox').onclick = (e) => {
+        if (e.target.closest('.rem-box')) return;   // gestito dall'editor delle notifiche
+        if (e.target.closest('#calRemBtn')) {
+            calRemOpen = !calRemOpen;
+            let rb = document.getElementById('calRemBox');
+            if (rb) rb.style.display = calRemOpen ? '' : 'none';
+            return;
+        }
         let el = e.target.closest('[data-cal-edit],[data-cal-check],[data-cal-nav],[data-cal-today],#calAddBtn,[data-cal-day]');
         if (!el) return;
         let d = el.dataset;
@@ -2611,6 +2774,9 @@
             showMonthOf(calSelected);
             renderCalendar();
         }
+    };
+    document.getElementById('calBox').onchange = (e) => {
+        if (e.target && e.target.id === 'calNewTime' && calRemCtl) calRemCtl.redraw();
     };
     document.getElementById('calBox').onkeydown = (e) => {
         if (e.key === 'Enter' && e.target && e.target.id === 'calNewText') { e.preventDefault(); addFromCalendar(); }
@@ -2917,6 +3083,7 @@
     const GCAL_API = 'https://www.googleapis.com/calendar/v3/calendars/primary/events';
     const TZ = (() => { try { return Intl.DateTimeFormat().resolvedOptions().timeZone || 'Europe/Rome'; } catch (e) { return 'Europe/Rome'; } })();
     let gTokenClient = null, gBusy = false, gAgain = false, gError = '', gTimer = null;
+    let gCalTz = '';   // fuso orario impostato in Google Calendar
 
     function gLinked() { return lsGet('spesaflow_glinked') === '1'; }
     function gOriginOk() { return location.origin === GOOGLE_ORIGIN; }
@@ -2953,7 +3120,10 @@
             summary: (t.done ? '✅ ' : '') + t.text,
             description: 'Attività di SpesaFlow',
             status: 'confirmed',
-            extendedProperties: { private: { spesaflowApp: '1', spesaflowId: String(t.id) } }
+            extendedProperties: { private: { spesaflowApp: '1', spesaflowId: String(t.id) } },
+            reminders: t.rem === null || t.rem === undefined
+                ? { useDefault: true }
+                : { useDefault: false, overrides: t.rem.map(m => ({ method: 'popup', minutes: m })) }
         };
         if (t.time) {
             let start = dueMoment(t), end = new Date(start.getTime() + 3600000);
@@ -2980,11 +3150,14 @@
         } else if (ev.start && ev.start.date) {
             date = ev.start.date;
         } else return null;
-        return { text, date, time, done };
+        let rem = (!ev.reminders || ev.reminders.useDefault) ? null
+            : normRem((ev.reminders.overrides || []).map(o => o.minutes));
+        return { text, date, time, done, rem };
     }
 
     function differs(t, f) {
-        return t.text !== f.text || t.date !== f.date || t.time !== f.time || !!t.done !== f.done;
+        return t.text !== f.text || t.date !== f.date || t.time !== f.time || !!t.done !== f.done ||
+            JSON.stringify(normRem(t.rem)) !== JSON.stringify(f.rem);
     }
 
     async function listLinkedEvents() {
@@ -2993,10 +3166,36 @@
             let q = new URLSearchParams({ privateExtendedProperty: 'spesaflowApp=1', showDeleted: 'true', maxResults: '2500' });
             if (pageToken) q.set('pageToken', pageToken);
             let r = await gapi(GCAL_API + '?' + q.toString());
+            if (r && r.timeZone && !pageToken) gCalTz = r.timeZone;
             items.push(...((r && r.items) || []));
             pageToken = (r && r.nextPageToken) || '';
         } while (pageToken);
         return items;
+    }
+
+    // Google mostra gli orari nel fuso impostato nel calendario: se è diverso da quello
+    // del dispositivo, gli eventi sono all'ora giusta ma appaiono spostati.
+    function tzMismatchText() {
+        if (!gCalTz || gCalTz === TZ) return '';
+        try {
+            let sample = new Date();
+            sample.setHours(19, 0, 0, 0);
+            let here = sample.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+            let there = sample.toLocaleTimeString('it-IT', { timeZone: gCalTz, hour: '2-digit', minute: '2-digit' });
+            if (here === there) return '';
+            return `Il tuo Google Calendar usa il fuso orario «${gCalTz}», mentre questo dispositivo usa «${TZ}». Per questo su Google gli orari appaiono spostati (le ${here} diventano le ${there}), anche se l'evento è all'ora giusta. Per sistemarlo: in Google Calendar apri Impostazioni → Generali → Fuso orario e scegli «(GMT+02:00) Ora dell'Europa centrale - Roma».`;
+        } catch (e) { return ''; }
+    }
+
+    function warnTzOnce() {
+        let msg = tzMismatchText();
+        let key = gCalTz + '|' + TZ;
+        if (!msg || lsGet('spesaflow_tzwarn') === key) return;
+        lsSet('spesaflow_tzwarn', key);
+        let o = openModal(`<h3>🕒 Orari spostati su Google Calendar</h3>
+            <div class="gcal-note">${esc(msg)}</div>
+            <div class="modal-actions"><button class="btn-confirm" type="button">Ho capito</button></div>`);
+        o.querySelector('.btn-confirm').onclick = () => o.remove();
     }
 
     async function gcalReconcile() {
@@ -3071,6 +3270,7 @@
                 }
             }
             lsSet('spesaflow_glast', String(Date.now()));
+            setTimeout(warnTzOnce, 300);
         } catch (e) {
             if (e.code === 'account') gError = 'Non trovo le attività su questo account Google: collega lo stesso account usato la prima volta';
             else if (e.status === 401) gError = '';   // permesso scaduto: basta toccare "Aggiorna"
@@ -3193,6 +3393,7 @@
         let last = Number(lsGet('spesaflow_glast')) || 0;
         let o = openModal(`<h3>📆 Google Calendar</h3>
             <div class="sync-status">${gError ? '⚠️ ' + esc(gError) : '✅ Collegato' + (last ? ` (ultimo allineamento: ${esc(fmtMoment(last))})` : '')}</div>
+            ${tzMismatchText() ? `<div class="gcal-note">🕒 ${esc(tzMismatchText())}</div>` : ''}
             <div class="sync-text">Le modifiche passano da sole nei due sensi mentre l'app è aperta. Il permesso di Google dura circa un'ora: quando scade, il pulsante diventa "🔄 Aggiorna" e basta toccarlo.</div>
             <div class="modal-actions">
                 <button class="btn-confirm g-now" type="button">🔄 Aggiorna ora</button>
