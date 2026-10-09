@@ -1038,7 +1038,228 @@
         .sync-status { background: #f8f9fa; border-radius: 14px; padding: 10px 12px; font-size: 0.8rem; color: #202124; margin-top: 10px; line-height: 1.45; }
         .sync-error { color: #d93025; font-size: 0.78rem; margin-top: 8px; min-height: 1em; }
         .qty-modal .modal-actions button:disabled { opacity: 0.5; }
+        /* tre schede: testo un po' più compatto */
+        .tab-btn { flex: 1 1 auto; font-size: 0.76rem; padding: 8px 6px; gap: 4px; white-space: nowrap; }
+        .cal-ev-time { display: none; }
+
+        /* CALENDARIO */
+        #calBox {
+            background: white;
+            border-radius: 20px;
+            padding: 12px 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        .cal-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            padding: 0 4px;
+        }
+        .cal-title { font-weight: 700; font-size: 1.05rem; color: #202124; text-transform: capitalize; }
+        .cal-nav {
+            border: none;
+            background: #f1f3f4;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            font-size: 1.3rem;
+            color: #1a73e8;
+            cursor: pointer;
+        }
+        .cal-nav:active { transform: scale(0.94); }
+        .cal-tools {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            margin: 8px 4px 10px 4px;
+        }
+        .cal-tools button {
+            border: 1px solid #dadce0;
+            background: white;
+            border-radius: 20px;
+            padding: 4px 12px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: #1a73e8;
+            cursor: pointer;
+            min-height: 32px;
+        }
+        .cal-count { font-size: 0.7rem; color: #5f6368; }
+        .cal-grid {
+            display: grid;
+            grid-template-columns: repeat(7, minmax(0, 1fr));
+            gap: 3px;
+        }
+        .cal-wd {
+            text-align: center;
+            font-size: 0.65rem;
+            font-weight: 600;
+            color: #5f6368;
+            padding-bottom: 2px;
+            text-transform: uppercase;
+        }
+        .cal-cell {
+            background: #f8f9fa;
+            border-radius: 10px;
+            min-height: 68px;
+            padding: 3px 2px;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            min-width: 0;
+            overflow: hidden;
+        }
+        .cal-cell.other { opacity: 0.45; }
+        .cal-cell.selected { border-color: #1a73e8; background: #e8f0fe; }
+        .cal-num {
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: #202124;
+            align-self: center;
+            min-width: 22px;
+            height: 22px;
+            line-height: 22px;
+            text-align: center;
+            border-radius: 50%;
+        }
+        .cal-cell.today .cal-num { background: #1a73e8; color: white; }
+        .cal-ev {
+            display: block;
+            width: 100%;
+            border: none;
+            border-radius: 5px;
+            padding: 1px 3px;
+            font-size: 0.58rem;
+            font-family: inherit;
+            text-align: left;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            cursor: pointer;
+            background: #e8eaed;
+            color: #202124;
+            min-height: 16px;
+        }
+        .cal-ev.late { background: #fce8e6; color: #d93025; }
+        .cal-ev.today { background: #d2e3fc; color: #1a73e8; }
+        .cal-ev.next { background: #fef7e0; color: #b06000; }
+        .cal-ev.none { background: #e8eaed; }
+        .cal-ev.done { background: #e6f4ea; color: #137333; text-decoration: line-through; }
+        .cal-more { font-size: 0.58rem; color: #5f6368; text-align: center; }
+        .cal-day { margin-top: 14px; padding: 0 4px; }
+        .cal-day-title { font-weight: 700; font-size: 0.9rem; color: #202124; margin-bottom: 8px; text-transform: capitalize; }
+        .cal-empty { font-size: 0.8rem; color: #9aa0a6; padding: 6px 0 10px 0; }
+        .cal-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #f8f9fa;
+            border-radius: 14px;
+            padding: 6px 8px;
+            margin-bottom: 6px;
+            border-left: 4px solid #dadce0;
+        }
+        .cal-item.late { border-left-color: #d93025; }
+        .cal-item.today { border-left-color: #1a73e8; }
+        .cal-item.next { border-left-color: #f9ab00; }
+        .cal-item.done { border-left-color: #34a853; }
+        .cal-item.done .todo-check { background: #34a853; border-color: #34a853; }
+        .cal-item-main {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border: none;
+            background: transparent;
+            font-family: inherit;
+            text-align: left;
+            cursor: pointer;
+            min-height: 40px;
+            padding: 0;
+        }
+        .cal-item-time { font-size: 0.72rem; font-weight: 600; color: #5f6368; min-width: 38px; }
+        .cal-item-text { flex: 1; min-width: 0; font-size: 0.88rem; color: #202124; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .cal-item.done .cal-item-text { text-decoration: line-through; color: #9aa0a6; }
+        .cal-item-edit { font-size: 0.8rem; opacity: 0.6; }
+        .cal-add { display: flex; gap: 6px; margin-top: 8px; }
+        .cal-add input {
+            border: 1px solid #ddd;
+            border-radius: 25px;
+            padding: 8px 12px;
+            font-size: 0.85rem;
+            font-family: inherit;
+            outline: none;
+            min-height: 42px;
+            background: white;
+            color: #202124;
+        }
+        .cal-add input[type=text] { flex: 1; min-width: 0; }
+        .cal-add input[type=time] { width: 104px; flex-shrink: 0; padding: 8px 8px; }
+        .cal-add input:focus { border-color: #1a73e8; }
+        .cal-add button {
+            background: #1a73e8;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            min-width: 46px;
+            min-height: 42px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        .cal-section { font-weight: 700; font-size: 0.85rem; color: #5f6368; margin: 6px 0 8px 0; }
+        .cal-section.late { color: #d93025; }
+        .cal-sent { font-size: 0.7rem; }
+        .m-gcal {
+            display: block;
+            text-align: center;
+            margin-top: 12px;
+            padding: 9px 12px;
+            border-radius: 25px;
+            border: 1px solid #d2e3fc;
+            color: #1a73e8;
+            font-size: 0.82rem;
+            font-weight: 600;
+            text-decoration: none;
+        }
+        .m-gcal.sent { background: #e6f4ea; border-color: #ceead6; color: #137333; }
+        .m-gcal:active { background: #e8f0fe; }
+        .gcal-linked {
+            background: #e8f0fe;
+            color: #1a73e8;
+            border-radius: 12px;
+            padding: 8px 10px;
+            font-size: 0.75rem;
+            line-height: 1.45;
+            margin-top: 12px;
+        }
+        .gcal-linked a { color: #1a73e8; font-weight: 600; }
+        .modal-row { display: flex; gap: 8px; }
+        .modal-row .modal-field { flex: 1; min-width: 0; }
+        .modal-check { display: flex; align-items: center; gap: 8px; margin-top: 12px; font-size: 0.85rem; color: #202124; cursor: pointer; }
+        .modal-check input { width: 20px; height: 20px; }
+        .gcal-note {
+            background: #fef7e0;
+            color: #7a4f01;
+            border-radius: 12px;
+            padding: 8px 10px;
+            font-size: 0.75rem;
+            line-height: 1.45;
+            margin-top: 12px;
+        }
+        .gcal-note a { color: #1a73e8; font-weight: 600; }
+        @media (min-width: 700px) {
+            .cal-cell { min-height: 96px; padding: 4px; }
+            .cal-ev { font-size: 0.7rem; padding: 2px 5px; }
+            .cal-ev-time { display: inline; font-weight: 600; }
+        }
     </style>
+<script src="https://accounts.google.com/gsi/client" async></script>
 </head>
 <body>
 <div class="app-container">
@@ -1057,7 +1278,7 @@
     <!-- SCHEDE -->
     <div class="tabs">
         <button class="tab-btn active" id="tabSpesa" type="button">🛒 Spesa</button>
-        <button class="tab-btn" id="tabTodo" type="button">✅ Cose da fare <span class="tab-badge" id="todoBadge" style="display:none;">0</span></button>
+        <button class="tab-btn" id="tabCal" type="button">📆 Calendario <span class="tab-badge" id="todoBadge" style="display:none;">0</span></button>
     </div>
 
     <div id="viewSpesa">
@@ -1085,21 +1306,14 @@
         <div id="board" class="categories-board"></div>
     </div>
 
-    <!-- COSE DA FARE -->
-    <div id="viewTodo" style="display:none;">
-        <div class="todo-add">
-            <input type="text" id="todoText" placeholder="Nuova cosa da fare... (Invio)" enterkeyhint="done">
-            <div class="todo-add-row">
-                <label>📅 <input type="date" id="todoDate" aria-label="Data (facoltativa)"></label>
-                <label>🕒 <input type="time" id="todoTime" aria-label="Ora (facoltativa)"></label>
-            </div>
-            <button id="todoAddBtn" class="todo-add-btn" type="button">➕ Aggiungi</button>
-        </div>
+    <!-- CALENDARIO -->
+    <div id="viewCal" style="display:none;">
         <div class="todo-tools">
+            <button id="gcalBtn" type="button">🔗 Collega Google Calendar</button>
             <button id="notifyBtn" type="button" style="display:none;">🔔 Attiva avvisi</button>
-            <button id="icsBtn" type="button" style="display:none;">📆 Esporta per il calendario (.ics)</button>
+            <button id="icsBtn" type="button" style="display:none;">📆 Esporta per Google Calendar (.ics)</button>
         </div>
-        <div id="todoList"></div>
+        <div id="calBox"></div>
     </div>
 </div>
 
@@ -1119,6 +1333,7 @@
     let notes = [];
     let cart = [];
     let todos = [];
+    let gDeletes = [];   // eventi di Google Calendar da eliminare (attività cancellate nell'app)
     let expandedCategories = new Set();
     let expandedSubCategories = new Set();
     let searchQuery = '';
@@ -1233,7 +1448,7 @@
     }
 
     function payload() {
-        return JSON.stringify({ categories, notes, cart, todos, updatedAt: dataUpdatedAt });
+        return JSON.stringify({ categories, notes, cart, todos, gDeletes, updatedAt: dataUpdatedAt });
     }
 
     // Scrive su questo dispositivo senza segnare una modifica
@@ -1353,9 +1568,15 @@
                     date,
                     time: (date && /^\d{2}:\d{2}$/.test(t.time)) ? t.time : '',
                     done: !!t.done,
-                    gcal: !!t.gcal
+                    gcal: !!t.gcal,                                   // inviata col vecchio pulsante (copia non collegata)
+                    gEventId: t.gEventId ? String(t.gEventId) : '',   // evento collegato su Google Calendar
+                    gSynced: t.gSynced ? String(t.gSynced) : '',      // versione dell'evento all'ultimo allineamento
+                    gSkip: !!t.gSkip,                                 // da non mettere su Google Calendar
+                    mod: Number(t.mod) || 0                           // ultima modifica fatta nell'app
                 };
             });
+        if (!Array.isArray(gDeletes)) gDeletes = [];
+        gDeletes = gDeletes.filter(x => typeof x === 'string' && x);
     }
 
     function loadDefaults() {
@@ -1370,6 +1591,7 @@
         ];
         cart = [];
         todos = [];
+        gDeletes = [];
         normalizeData();
         expandAll();
         saveUiState();
@@ -1413,7 +1635,7 @@
 
     function backupData() {
         try {
-            let data = { categories, notes, cart, todos, version: '3.0', exportedAt: new Date().toISOString() };
+            let data = { categories, notes, cart, todos, gDeletes, version: '3.1', exportedAt: new Date().toISOString() };
             downloadFile(JSON.stringify(data, null, 2), 'application/json', `spesaflow_backup_${new Date().toISOString().slice(0, 10)}.json`);
             lsSet('spesaflow_last_backup', String(Date.now()));
             renderBackupBanner();
@@ -1462,6 +1684,7 @@
                 notes = data.notes;
                 cart = Array.isArray(data.cart) ? data.cart : [];
                 if (Array.isArray(data.todos)) todos = data.todos;   // i backup vecchi non le contengono: restano quelle attuali
+                if (Array.isArray(data.gDeletes)) gDeletes = data.gDeletes;
                 normalizeData();
                 expandAll();
                 saveUiState();
@@ -2097,26 +2320,32 @@
         text = text.trim();
         if (!text) return false;
         if (time && !date) date = isoDay(new Date());   // solo l'ora: si intende oggi
-        todos.push({ id: uid(), text, date: date || '', time: date ? (time || '') : '', done: false, gcal: false });
+        todos.push({ id: uid(), text, date: date || '', time: date ? (time || '') : '', done: false, gcal: false, gEventId: '', gSynced: '', gSkip: false, mod: Date.now() });
         save();
         renderTodos();
+        gcalSoon();
         return true;
     }
 
     function updateTodo(id, changes) {
         let t = todos.find(t => t.id === id);
         if (t) {
+            if (['text', 'date', 'time', 'done'].some(k => k in changes && changes[k] !== t[k])) t.mod = Date.now();
             Object.assign(t, changes);
             if (!t.date) t.time = '';
         }
         save();
         renderTodos();
+        gcalSoon();
     }
 
     function removeTodo(id) {
+        let t = todos.find(t => t.id === id);
+        if (t && t.gEventId) gDeletes.push(t.gEventId);
         todos = todos.filter(t => t.id !== id);
         save();
         renderTodos();
+        gcalSoon();
     }
 
     function clearDoneTodos() {
@@ -2129,119 +2358,262 @@
     }
 
     function renderTodos() {
-        let list = document.getElementById('todoList');
+        renderTodoStatus();
+        renderCalendar();
+    }
+
+    // Contatore sulla scheda, avviso nella Spesa, pulsante di esportazione
+    function renderTodoStatus() {
+        let late = 0, today = 0;
+        todos.forEach(t => {
+            if (t.done) return;
+            let g = dateInfo(t).group;
+            if (g === 'late') late++;
+            else if (g === 'today') today++;
+        });
         let badge = document.getElementById('todoBadge');
-        if (!list || !badge) return;
+        badge.textContent = late + today;
+        badge.style.display = (late + today) ? '' : 'none';
+        badge.classList.toggle('late', late > 0);
 
-        let groups = { late: [], today: [], next: [], none: [], done: [] };
-        todos.forEach(t => groups[t.done ? 'done' : dateInfo(t).group].push(t));
-
-        let open = todos.length - groups.done.length;
-        badge.textContent = open;
-        badge.style.display = open ? '' : 'none';
-        badge.classList.toggle('late', groups.late.length > 0);
-
-        // Promemoria nella scheda Spesa
         let banner = document.getElementById('todoBanner');
         let parts = [];
-        if (groups.late.length) parts.push(`${groups.late.length} in ritardo`);
-        if (groups.today.length) parts.push(`${groups.today.length} per oggi`);
+        if (late) parts.push(`${late} in ritardo`);
+        if (today) parts.push(`${today} per oggi`);
         banner.style.display = parts.length ? '' : 'none';
-        banner.classList.toggle('late', groups.late.length > 0);
+        banner.classList.toggle('late', late > 0);
         banner.textContent = parts.length ? `⏰ Cose da fare: ${parts.join(', ')} →` : '';
 
-        document.getElementById('icsBtn').style.display = todos.some(t => !t.done && t.date) ? '' : 'none';
-
-        if (!todos.length) {
-            list.innerHTML = '<div class="todo-empty">📝 Niente da fare per ora.<br>Scrivi qui sopra la prima cosa: data e ora sono facoltative.</div>';
-            return;
-        }
-
-        let html = '';
-        for (let g of TODO_GROUPS) {
-            let items = groups[g.key];
-            if (!items.length) continue;
-            let key = t => (t.date || '9999') + (t.time || '99:99');
-            items.sort((a, b) => key(a).localeCompare(key(b)) || byText(a.text, b.text));
-            html += `<div class="todo-group">
-                        <div class="todo-group-header ${g.key}">
-                            <span>${g.title} (${items.length})</span>
-                            ${g.key === 'done' ? '<button type="button" data-todo-cleardone="1">🗑️ Elimina fatte</button>' : ''}
-                        </div>`;
-            for (let t of items) {
-                let info = dateInfo(t);
-                html += `<div class="todo-card ${g.key}">
-                            <button class="todo-check" type="button" data-todo-check="${t.id}" aria-label="${t.done ? 'Segna come da fare' : 'Segna come fatta'}">${t.done ? '✓' : ''}</button>
-                            <div class="todo-main">
-                                <input class="todo-text" value="${esc(t.text)}" data-todo-text="${t.id}" aria-label="Testo">
-                                <div class="todo-meta">
-                                    <span class="todo-chip ${t.date ? '' : 'empty'}">📅 ${esc(info.label)}<input type="date" value="${esc(t.date)}" data-todo-date="${t.id}" aria-label="Data"></span>
-                                    ${t.date ? `<span class="todo-chip ${t.time ? '' : 'empty'}">🕒 ${t.time ? esc(t.time) : 'Ora'}<input type="time" value="${esc(t.time)}" data-todo-time="${t.id}" aria-label="Ora"></span>` : ''}
-                                    ${t.date ? `<button class="todo-date-clear" type="button" data-todo-nodate="${t.id}" aria-label="Togli data e ora">✕</button>` : ''}
-                                    ${t.date && !t.done ? `<a class="todo-gcal ${t.gcal ? 'sent' : ''}" href="${esc(gcalUrl(t))}" target="_blank" rel="noopener" data-todo-gcal="${t.id}" aria-label="Aggiungi a Google Calendar">${t.gcal ? '✓' : '➕'} Calendar</a>` : ''}
-                                </div>
-                            </div>
-                            <button class="remove-item" type="button" data-todo-remove="${t.id}" aria-label="Elimina">✖️</button>
-                        </div>`;
-            }
-            html += `</div>`;
-        }
-        list.innerHTML = html;
+        document.getElementById('icsBtn').style.display = (!gLinked() && todos.some(t => !t.done && t.date)) ? '' : 'none';
+        renderGcalBtn();
     }
 
-    document.getElementById('todoList').onclick = (e) => {
-        let el = e.target.closest('[data-todo-check],[data-todo-remove],[data-todo-nodate],[data-todo-cleardone],[data-todo-date],[data-todo-time],[data-todo-gcal]');
-        if (!el) return;
-        let d = el.dataset;
-        if (d.todoCheck) {
-            let t = todos.find(t => t.id === Number(d.todoCheck));
-            if (t) updateTodo(t.id, { done: !t.done });
-        } else if (d.todoRemove) removeTodo(Number(d.todoRemove));
-        else if (d.todoNodate) updateTodo(Number(d.todoNodate), { date: '', time: '', gcal: false });
-        else if (d.todoCleardone) clearDoneTodos();
-        else if (d.todoGcal) {
-            // il link si apre da solo: qui si segna soltanto che è già stata inviata
-            let t = todos.find(t => t.id === Number(d.todoGcal));
-            if (t) { t.gcal = true; save(); setTimeout(renderTodos, 600); }
-        } else if ((d.todoDate || d.todoTime) && el.showPicker) {
-            try { el.showPicker(); } catch (err) { /* il browser apre da solo il selettore */ }
-        }
+    document.getElementById('todoBanner').onclick = () => {
+        calSelected = isoDay(new Date());
+        showMonthOf(calSelected);
+        setTab('cal');
     };
-    document.getElementById('todoList').onchange = (e) => {
-        let el = e.target;
-        if (!el || !el.dataset) return;
-        if (el.dataset.todoText) {
-            let text = el.value.trim();
-            if (text) updateTodo(Number(el.dataset.todoText), { text });
-            else renderTodos();
-        } else if (el.dataset.todoDate) {
-            updateTodo(Number(el.dataset.todoDate), { date: el.value || '', gcal: false });
-        } else if (el.dataset.todoTime) {
-            updateTodo(Number(el.dataset.todoTime), { time: el.value || '', gcal: false });
-        }
-    };
-
-    function submitNewTodo() {
-        let text = document.getElementById('todoText');
-        let date = document.getElementById('todoDate');
-        let time = document.getElementById('todoTime');
-        if (addTodo(text.value || '', date.value || '', time.value || '')) {
-            text.value = '';
-            date.value = '';
-            time.value = '';
-        }
-        text.focus();
-    }
-    document.getElementById('todoAddBtn').onclick = submitNewTodo;
-    document.getElementById('todoText').onkeydown = (e) => {
-        if (e.key === 'Enter') { e.preventDefault(); submitNewTodo(); }
-    };
-    document.getElementById('todoBanner').onclick = () => setTab('todo');
     document.getElementById('icsBtn').onclick = () => {
         let ics = buildIcs();
         if (!ics) return;
         downloadFile(ics, 'text/calendar;charset=utf-8', 'spesaflow_cose_da_fare.ics');
         showToast('✅ File creato: importalo in Google Calendar', 'success');
+    };
+
+    // ---------- CALENDARIO ----------
+    const WEEKDAYS = ['lun', 'mar', 'mer', 'gio', 'ven', 'sab', 'dom'];
+    let calView = (() => { let d = new Date(); return { y: d.getFullYear(), m: d.getMonth() }; })();
+    let calSelected = isoDay(new Date());
+
+    function todoGroup(t) {
+        return t.done ? 'done' : dateInfo(t).group;
+    }
+
+    function todosOn(iso) {
+        let k = t => t.time || '99:99';
+        return todos.filter(t => t.date === iso)
+            .sort((a, b) => (a.done - b.done) || k(a).localeCompare(k(b)) || byText(a.text, b.text));
+    }
+
+    function showMonthOf(iso) {
+        let d = parseDay(iso);
+        calView = { y: d.getFullYear(), m: d.getMonth() };
+    }
+
+    function calRow(t, withDate) {
+        let when = t.time ? esc(t.time) : '—';
+        if (withDate) when = t.date ? esc(parseDay(t.date).toLocaleDateString('it-IT', { day: 'numeric', month: 'short' })) : '—';
+        return `<div class="cal-item ${todoGroup(t)}">
+                    <button class="todo-check" type="button" data-cal-check="${t.id}" aria-label="${t.done ? 'Segna come da fare' : 'Segna come fatta'}">${t.done ? '✓' : ''}</button>
+                    <button type="button" class="cal-item-main" data-cal-edit="${t.id}" aria-label="Modifica">
+                        <span class="cal-item-time">${when}</span>
+                        <span class="cal-item-text">${esc(t.text)}${(t.gcal || t.gEventId) ? ' <span class="cal-sent" title="Su Google Calendar">📆</span>' : ''}</span>
+                        <span class="cal-item-edit">✏️</span>
+                    </button>
+                </div>`;
+    }
+
+    function renderCalendar() {
+        let box = document.getElementById('calBox');
+        if (!box) return;
+        let { y, m } = calView;
+        let first = new Date(y, m, 1);
+        let offset = (first.getDay() + 6) % 7;   // settimana da lunedì
+        let days = new Date(y, m + 1, 0).getDate();
+        let weeks = Math.ceil((offset + days) / 7);
+        let today = isoDay(new Date());
+        let prefix = `${y}-${pad2(m + 1)}-`;
+        let monthCount = todos.filter(t => t.date && t.date.startsWith(prefix)).length;
+        let title = first.toLocaleDateString('it-IT', { month: 'long', year: 'numeric' });
+
+        let html = `<div class="cal-head">
+                <button type="button" class="cal-nav" data-cal-nav="-1" aria-label="Mese precedente">‹</button>
+                <div class="cal-title">${esc(title)}</div>
+                <button type="button" class="cal-nav" data-cal-nav="1" aria-label="Mese successivo">›</button>
+            </div>
+            <div class="cal-tools">
+                <button type="button" data-cal-today="1">Oggi</button>
+                <span class="cal-count">${monthCount === 1 ? '1 attività' : monthCount + ' attività'} in questo mese</span>
+            </div>
+            <div class="cal-grid">${WEEKDAYS.map(w => `<div class="cal-wd">${w}</div>`).join('')}`;
+
+        for (let i = 0; i < weeks * 7; i++) {
+            let d = new Date(y, m, 1 - offset + i);
+            let iso = isoDay(d);
+            let list = todosOn(iso);
+            let cls = ['cal-cell'];
+            if (d.getMonth() !== m) cls.push('other');
+            if (iso === today) cls.push('today');
+            if (iso === calSelected) cls.push('selected');
+            let chips = list.slice(0, 3).map(t =>
+                `<button type="button" class="cal-ev ${todoGroup(t)}" data-cal-edit="${t.id}" title="${esc((t.time ? t.time + ' ' : '') + t.text)}">${t.time ? `<span class="cal-ev-time">${esc(t.time)} </span>` : ''}${esc(t.text)}</button>`
+            ).join('');
+            if (list.length > 3) chips += `<span class="cal-more">+${list.length - 3}</span>`;
+            html += `<div class="${cls.join(' ')}" data-cal-day="${iso}" role="button" aria-label="${esc(d.toLocaleDateString('it-IT', { day: 'numeric', month: 'long' }))}"><span class="cal-num">${d.getDate()}</span>${chips}</div>`;
+        }
+        html += `</div>`;
+
+        // Elenco del giorno selezionato
+        let sel = parseDay(calSelected);
+        let selList = todosOn(calSelected);
+        html += `<div class="cal-day">
+                <div class="cal-day-title">${esc(sel.toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' }))}</div>`;
+        if (!selList.length) html += `<div class="cal-empty">Nessuna attività in questo giorno</div>`;
+        for (let t of selList) html += calRow(t, false);
+        html += `<div class="cal-add">
+                    <input type="text" id="calNewText" placeholder="Nuova attività in questo giorno..." enterkeyhint="done" aria-label="Nuova attività">
+                    <input type="time" id="calNewTime" aria-label="Ora (facoltativa)">
+                    <button type="button" id="calAddBtn" aria-label="Aggiungi">➕</button>
+                </div>
+            </div>`;
+
+        // Attività rimaste indietro e attività senza data
+        let k = t => (t.date || '') + (t.time || '99:99');
+        let late = todos.filter(t => !t.done && t.date && dateInfo(t).group === 'late').sort((a, b) => k(a).localeCompare(k(b)));
+        let undated = todos.filter(t => !t.done && !t.date).sort((a, b) => byText(a.text, b.text));
+        if (late.length) html += `<div class="cal-day"><div class="cal-section late">⚠️ In ritardo (${late.length})</div>${late.map(t => calRow(t, true)).join('')}</div>`;
+        if (undated.length) html += `<div class="cal-day"><div class="cal-section">📝 Senza data (${undated.length})</div>${undated.map(t => calRow(t, true)).join('')}<div class="cal-empty">Tocca un'attività per darle una data.</div></div>`;
+        box.innerHTML = html;
+    }
+
+    function addFromCalendar() {
+        let text = document.getElementById('calNewText');
+        let time = document.getElementById('calNewTime');
+        if (!text.value.trim()) { text.focus(); return; }
+        addTodo(text.value, calSelected, time.value || '');
+        let again = document.getElementById('calNewText');
+        if (again) again.focus();   // per inserirne più di fila
+    }
+
+    // Finestra di modifica di un'attività (dal calendario)
+    function showTodoModal(id) {
+        let t = todos.find(t => t.id === id);
+        if (!t) return;
+        let googleDay = t.date ? `https://calendar.google.com/calendar/r/day/${t.date.replace(/-0?/g, '/')}` : 'https://calendar.google.com/';
+        let overlay = openModal(`
+            <h3>✏️ Modifica attività</h3>
+            <label class="modal-field">Testo
+                <input type="text" class="m-text" value="${esc(t.text)}">
+            </label>
+            <div class="modal-row">
+                <label class="modal-field">Data
+                    <input type="date" class="m-date" value="${esc(t.date)}">
+                </label>
+                <label class="modal-field">Ora
+                    <input type="time" class="m-time" value="${esc(t.time)}">
+                </label>
+            </div>
+            <label class="modal-check"><input type="checkbox" class="m-done" ${t.done ? 'checked' : ''}> Fatta</label>
+            ${gcalModalHtml(t, googleDay)}
+            <div class="sync-error" role="alert"></div>
+            <div class="modal-actions">
+                <button class="btn-delete m-del" type="button">🗑️ Elimina</button>
+                <button class="btn-cancel m-cancel" type="button">Annulla</button>
+                <button class="btn-confirm m-save" type="button">✅ Salva</button>
+            </div>`);
+        let q = sel => overlay.querySelector(sel);
+        q('.m-cancel').onclick = () => overlay.remove();
+        q('.m-del').onclick = () => {
+            if (!confirm(`🗑️ Eliminare "${t.text}"?`)) return;
+            let wasSent = t.gcal;
+            overlay.remove();
+            removeTodo(t.id);
+            if (wasSent) showToast('📆 Ricorda di eliminare l\'evento anche da Google Calendar (era una copia non collegata)');
+        };
+        q('.m-save').onclick = () => {
+            let text = q('.m-text').value.trim();
+            if (!text) { q('.sync-error').textContent = 'Il testo non può essere vuoto'; return; }
+            let date = q('.m-date').value || '';
+            let time = q('.m-time').value || '';
+            if (time && !date) date = isoDay(new Date());   // solo l'ora: si intende oggi
+            if (!date) time = '';
+            let changed = text !== t.text || date !== t.date || time !== t.time;
+            let wasSent = t.gcal;
+            overlay.remove();
+            if (date) { calSelected = date; showMonthOf(date); }
+            updateTodo(t.id, { text, date, time, done: q('.m-done').checked, gcal: (changed && !gLinked()) ? false : t.gcal });
+            if (changed && wasSent) showToast('📆 Ricorda di aggiornare l\'evento anche su Google Calendar');
+        };
+        // Invio a Google Calendar: salva anche le modifiche fatte nella finestra
+        let gl = q('.m-gcal');
+        if (gl) gl.onclick = (e) => {
+            let text = q('.m-text').value.trim();
+            let date = q('.m-date').value || '';
+            let time = date ? (q('.m-time').value || '') : '';
+            if (!text || !date) {
+                e.preventDefault();
+                q('.sync-error').textContent = !text ? 'Il testo non può essere vuoto' : 'Scegli prima una data';
+                return;
+            }
+            gl.href = gcalUrl({ text, date, time });
+            setTimeout(() => {
+                overlay.remove();
+                calSelected = date;
+                showMonthOf(date);
+                updateTodo(t.id, { text, date, time, done: q('.m-done').checked, gcal: true });
+            }, 0);
+        };
+        let link = q('.m-link');
+        if (link) link.onclick = (e) => {
+            e.preventDefault();
+            overlay.remove();
+            updateTodo(t.id, { gcal: false, gSkip: false });
+            showToast('🔗 Verrà collegata a Google Calendar', 'success');
+        };
+        let ti = q('.m-text');
+        ti.onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); q('.m-save').click(); } };
+    }
+
+    document.getElementById('calBox').onclick = (e) => {
+        let el = e.target.closest('[data-cal-edit],[data-cal-check],[data-cal-nav],[data-cal-today],#calAddBtn,[data-cal-day]');
+        if (!el) return;
+        let d = el.dataset;
+        if (d.calEdit) {
+            let t = todos.find(t => t.id === Number(d.calEdit));
+            if (t && t.date) calSelected = t.date;
+            showTodoModal(Number(d.calEdit));
+            renderCalendar();
+        } else if (d.calCheck) {
+            let t = todos.find(t => t.id === Number(d.calCheck));
+            if (t) updateTodo(t.id, { done: !t.done });
+        } else if (d.calNav) {
+            let n = new Date(calView.y, calView.m + Number(d.calNav), 1);
+            calView = { y: n.getFullYear(), m: n.getMonth() };
+            renderCalendar();
+        } else if (d.calToday) {
+            calSelected = isoDay(new Date());
+            showMonthOf(calSelected);
+            renderCalendar();
+        } else if (el.id === 'calAddBtn') {
+            addFromCalendar();
+        } else if (d.calDay) {
+            calSelected = d.calDay;
+            showMonthOf(calSelected);
+            renderCalendar();
+        }
+    };
+    document.getElementById('calBox').onkeydown = (e) => {
+        if (e.key === 'Enter' && e.target && e.target.id === 'calNewText') { e.preventDefault(); addFromCalendar(); }
     };
 
     // ---------- AVVISI ALLA SCADENZA (solo mentre l'app è aperta) ----------
@@ -2373,6 +2745,7 @@
         notes = r.notes;
         cart = r.cart;
         todos = r.todos;
+        if (Array.isArray(r.gDeletes)) gDeletes = r.gDeletes;
         normalizeData();
         dataUpdatedAt = Number(r.updatedAt) || Date.now();
         sync.base = dataUpdatedAt;
@@ -2381,6 +2754,7 @@
         loadUiState();
         render();
         renderTodos();
+        gcalSoon();   // porta su Google le modifiche arrivate dagli altri dispositivi
     }
 
     // Regola: se entrambe le parti sono cambiate, vince la modifica più recente
@@ -2534,18 +2908,320 @@
     }
     document.getElementById('syncBtn').onclick = showSyncModal;
 
+    // ---------- GOOGLE CALENDAR (collegamento diretto) ----------
+    // Ogni attività con data diventa un evento del calendario principale. Le modifiche passano
+    // nei due sensi; se la stessa attività è cambiata da entrambe le parti, vince la modifica più recente.
+    const GOOGLE_CLIENT_ID = '742653328373-c3ejaihbn3rja3k069mifj0e0u7unj72.apps.googleusercontent.com';
+    const GOOGLE_ORIGIN = 'https://lucioros.github.io';
+    const GCAL_SCOPE = 'https://www.googleapis.com/auth/calendar.events';
+    const GCAL_API = 'https://www.googleapis.com/calendar/v3/calendars/primary/events';
+    const TZ = (() => { try { return Intl.DateTimeFormat().resolvedOptions().timeZone || 'Europe/Rome'; } catch (e) { return 'Europe/Rome'; } })();
+    let gTokenClient = null, gBusy = false, gAgain = false, gError = '', gTimer = null;
+
+    function gLinked() { return lsGet('spesaflow_glinked') === '1'; }
+    function gOriginOk() { return location.origin === GOOGLE_ORIGIN; }
+    function gToken() {
+        try {
+            let t = JSON.parse(lsGet('spesaflow_gtoken') || 'null');
+            return (t && t.exp > Date.now()) ? t.token : '';
+        } catch (e) { return ''; }
+    }
+    function gClearToken() { lsSet('spesaflow_gtoken', ''); }
+
+    function gcalSoon() {
+        if (!gLinked() || !gToken()) { renderGcalBtn(); return; }
+        clearTimeout(gTimer);
+        gTimer = setTimeout(gcalReconcile, 1500);
+    }
+
+    async function gapi(url, opts) {
+        opts = opts || {};
+        let headers = { 'Authorization': 'Bearer ' + gToken() };
+        if (opts.body) headers['Content-Type'] = 'application/json';
+        let r = await fetch(url, { method: opts.method || 'GET', headers, body: opts.body, cache: 'no-store' });
+        if (r.status === 401) gClearToken();
+        if (!r.ok) { let e = new Error('HTTP ' + r.status); e.status = r.status; throw e; }
+        return (r.status === 204) ? null : r.json();
+    }
+
+    function localStamp(d) {
+        return `${isoDay(d)}T${pad2(d.getHours())}:${pad2(d.getMinutes())}:00`;
+    }
+
+    function eventBody(t) {
+        let b = {
+            summary: (t.done ? '✅ ' : '') + t.text,
+            description: 'Attività di SpesaFlow',
+            status: 'confirmed',
+            extendedProperties: { private: { spesaflowApp: '1', spesaflowId: String(t.id) } }
+        };
+        if (t.time) {
+            let start = dueMoment(t), end = new Date(start.getTime() + 3600000);
+            b.start = { dateTime: localStamp(start), timeZone: TZ, date: null };
+            b.end = { dateTime: localStamp(end), timeZone: TZ, date: null };
+        } else {
+            let d = parseDay(t.date);
+            b.start = { date: t.date, dateTime: null, timeZone: null };
+            b.end = { date: isoDay(new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1)), dateTime: null, timeZone: null };
+        }
+        return JSON.stringify(b);
+    }
+
+    // Come appare un evento di Google tradotto in attività
+    function eventFields(ev) {
+        let summary = String(ev.summary || '');
+        let done = /^✅/.test(summary);
+        let text = summary.replace(/^✅\s*/, '').trim();
+        let date = '', time = '';
+        if (ev.start && ev.start.dateTime) {
+            let d = new Date(ev.start.dateTime);
+            date = isoDay(d);
+            time = `${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+        } else if (ev.start && ev.start.date) {
+            date = ev.start.date;
+        } else return null;
+        return { text, date, time, done };
+    }
+
+    function differs(t, f) {
+        return t.text !== f.text || t.date !== f.date || t.time !== f.time || !!t.done !== f.done;
+    }
+
+    async function listLinkedEvents() {
+        let items = [], pageToken = '';
+        do {
+            let q = new URLSearchParams({ privateExtendedProperty: 'spesaflowApp=1', showDeleted: 'true', maxResults: '2500' });
+            if (pageToken) q.set('pageToken', pageToken);
+            let r = await gapi(GCAL_API + '?' + q.toString());
+            items.push(...((r && r.items) || []));
+            pageToken = (r && r.nextPageToken) || '';
+        } while (pageToken);
+        return items;
+    }
+
+    async function gcalReconcile() {
+        if (!gLinked() || !gOriginOk() || !gToken()) { renderGcalBtn(); return; }
+        if (gBusy) { gAgain = true; return; }
+        gBusy = true;
+        gError = '';
+        renderGcalBtn();
+        let changed = false, fromGoogle = 0;
+        try {
+            // 1. eventi delle attività eliminate nell'app
+            for (let id of gDeletes.slice()) {
+                try { await gapi(GCAL_API + '/' + encodeURIComponent(id), { method: 'DELETE' }); }
+                catch (e) { if (e.status !== 404 && e.status !== 410) throw e; }
+                gDeletes = gDeletes.filter(x => x !== id);
+                changed = true;
+            }
+
+            // 2. com'è la situazione su Google
+            let events = await listLinkedEvents();
+            let byId = new Map(events.map(ev => [ev.id, ev]));
+            let linked = todos.filter(t => t.gEventId);
+            let gone = linked.filter(t => { let ev = byId.get(t.gEventId); return !ev || ev.status === 'cancelled'; });
+            if (gone.length && !events.length) {
+                // nessuno degli eventi collegati esiste: quasi certamente è un altro account Google
+                let e = new Error('account'); e.code = 'account'; throw e;
+            }
+            if (gone.length) {
+                let ok = gone.length < 3 || confirm(`📆 Su Google Calendar risultano eliminate ${gone.length} attività. Eliminarle anche dall'app?\n(Annulla = le tengo nell'app, scollegate da Google)`);
+                for (let t of gone) {
+                    if (ok) todos = todos.filter(x => x !== t);
+                    else { t.gEventId = ''; t.gSynced = ''; t.gSkip = true; }
+                }
+                changed = true;
+                fromGoogle += gone.length;
+            }
+
+            // 3. allinea attività ed eventi
+            for (let t of todos.slice()) {
+                if (t.gEventId) {
+                    let ev = byId.get(t.gEventId);
+                    if (!ev || ev.status === 'cancelled') continue;
+                    if (!t.date) {   // data tolta nell'app: l'evento non serve più
+                        try { await gapi(GCAL_API + '/' + encodeURIComponent(t.gEventId), { method: 'DELETE' }); }
+                        catch (e) { if (e.status !== 404 && e.status !== 410) throw e; }
+                        t.gEventId = ''; t.gSynced = '';
+                        changed = true;
+                        continue;
+                    }
+                    let f = eventFields(ev);
+                    let googleChanged = ev.updated !== t.gSynced;
+                    let localChanged = f ? differs(t, f) : true;
+                    if (!localChanged) {
+                        if (googleChanged) { t.gSynced = ev.updated; changed = true; }
+                        continue;
+                    }
+                    if (googleChanged && f && Date.parse(ev.updated) > (t.mod || 0)) {
+                        Object.assign(t, f);   // vince la modifica fatta su Google
+                        t.gSynced = ev.updated;
+                        changed = true;
+                        fromGoogle++;
+                    } else {
+                        let up = await gapi(GCAL_API + '/' + encodeURIComponent(t.gEventId), { method: 'PATCH', body: eventBody(t) });
+                        t.gSynced = up.updated;
+                        changed = true;
+                    }
+                } else if (t.date && !t.gcal && !t.gSkip) {
+                    let ev = await gapi(GCAL_API, { method: 'POST', body: eventBody(t) });
+                    t.gEventId = ev.id;
+                    t.gSynced = ev.updated;
+                    changed = true;
+                }
+            }
+            lsSet('spesaflow_glast', String(Date.now()));
+        } catch (e) {
+            if (e.code === 'account') gError = 'Non trovo le attività su questo account Google: collega lo stesso account usato la prima volta';
+            else if (e.status === 401) gError = '';   // permesso scaduto: basta toccare "Aggiorna"
+            else if (e.status === 403) gError = 'Google ha negato l\'accesso al calendario: scollega e ricollega dando il permesso';
+            else gError = 'Nessuna connessione con Google: riprovo più tardi';
+        }
+        if (changed) { save(); renderTodos(); }
+        if (fromGoogle) showToast('📆 Aggiornate le modifiche fatte su Google Calendar');
+        gBusy = false;
+        renderGcalBtn();
+        if (gAgain) { gAgain = false; gcalSoon(); }
+    }
+
+    function onGoogleToken(resp) {
+        if (!resp || resp.error) {
+            gError = 'Accesso a Google non completato';
+            renderGcalBtn();
+            return;
+        }
+        if (!google.accounts.oauth2.hasGrantedAllScopes(resp, GCAL_SCOPE)) {
+            showToast('⚠️ Serve il permesso di gestire gli eventi del calendario: riprova e spunta la casella', 'error');
+            return;
+        }
+        lsSet('spesaflow_gtoken', JSON.stringify({ token: resp.access_token, exp: Date.now() + (Number(resp.expires_in) || 3600) * 1000 - 60000 }));
+        gError = '';
+        let first = !gLinked();
+        lsSet('spesaflow_glinked', '1');
+        if (first) {
+            let existing = todos.filter(t => t.date && !t.gEventId && !t.gcal && !t.gSkip);
+            let manual = todos.filter(t => t.date && !t.gEventId && t.gcal).length;
+            let what = existing.length === 1 ? 'l\'attività con data già presente' : `le ${existing.length} attività con data già presenti`;
+            let excl = manual === 1 ? 'Quella già inviata con il vecchio pulsante resta esclusa' : `Le ${manual} già inviate con il vecchio pulsante restano escluse`;
+            if (existing.length && !confirm(`📆 Google Calendar collegato! Vuoi aggiungere anche ${what} nell'app?` +
+                (manual ? `\n(${excl}, per non creare doppioni.)` : ''))) {
+                existing.forEach(t => { t.gSkip = true; });
+                save();
+            }
+            showToast('✅ Google Calendar collegato', 'success');
+        }
+        renderTodos();
+        gcalReconcile();
+    }
+
+    // Chiede a Google il permesso (va chiamata dal tocco di un pulsante, altrimenti il browser blocca la finestra)
+    function gcalAuth() {
+        if (!gOriginOk()) {
+            showToast('Il collegamento funziona solo aprendo l\'app da lucioros.github.io/Note', 'error');
+            return;
+        }
+        if (!gTokenClient) {
+            if (!(window.google && google.accounts && google.accounts.oauth2)) {
+                showToast('❌ Servizio Google non raggiungibile: controlla la connessione e riprova', 'error');
+                return;
+            }
+            gTokenClient = google.accounts.oauth2.initTokenClient({
+                client_id: GOOGLE_CLIENT_ID,
+                scope: GCAL_SCOPE,
+                callback: onGoogleToken,
+                error_callback: () => { gError = ''; renderGcalBtn(); showToast('Accesso a Google annullato'); }
+            });
+        }
+        gTokenClient.requestAccessToken({ prompt: '' });
+    }
+
+    function gcalDisconnect() {
+        let tok = gToken();
+        try { if (tok && window.google && google.accounts && google.accounts.oauth2) google.accounts.oauth2.revoke(tok, () => {}); } catch (e) { /* non importante */ }
+        gClearToken();
+        lsSet('spesaflow_glinked', '');
+        gError = '';
+        renderTodos();
+    }
+
+    function renderGcalBtn() {
+        let b = document.getElementById('gcalBtn');
+        if (!b) return;
+        if (!gLinked()) b.textContent = '🔗 Collega Google Calendar';
+        else if (gBusy) b.textContent = '⏳ Google Calendar…';
+        else if (gError) b.textContent = '⚠️ Google Calendar';
+        else if (!gToken()) b.textContent = '🔄 Aggiorna Google Calendar';
+        else b.textContent = '✅ Google Calendar';
+    }
+
+    function gcalModalHtml(t, googleDay) {
+        if (gLinked()) {
+            if (t.gEventId) return `<div class="gcal-linked">🔗 Collegata a Google Calendar: modifiche ed eliminazione si aggiornano anche lì.</div>`;
+            if (t.date && (t.gcal || t.gSkip)) {
+                return `<div class="gcal-note">${t.gcal ? 'Inviata a Google Calendar con il vecchio pulsante: è una copia non collegata.' : 'Non collegata a Google Calendar.'} <a href="#" class="m-link">Collegala</a>${t.gcal ? ' (poi elimina a mano su Google la copia vecchia).' : ''}</div>`;
+            }
+            if (t.date) return `<div class="gcal-linked">🔗 Verrà aggiunta a Google Calendar.</div>`;
+            return `<div class="gcal-linked">Senza data non compare su Google Calendar.</div>`;
+        }
+        let html = '';
+        if (t.gcal) html += `<div class="gcal-note">📆 Questa attività è già stata inviata a Google Calendar. Se la modifichi qui, l'evento su Google <b>non</b> cambia da solo: aggiornalo o eliminalo anche lì. <a href="${esc(googleDay)}" target="_blank" rel="noopener">Apri quel giorno in Google Calendar</a></div>`;
+        if (!t.done) html += `<a class="m-gcal ${t.gcal ? 'sent' : ''}" href="#" target="_blank" rel="noopener">${t.gcal ? '📆 Già inviata a Google Calendar · invia di nuovo' : '📆 Aggiungi a Google Calendar'}</a>`;
+        return html;
+    }
+
+    function showGcalModal() {
+        if (!gOriginOk()) {
+            let o = openModal(`<h3>📆 Google Calendar</h3>
+                <div class="sync-text">Il collegamento con Google Calendar funziona solo aprendo l'app dal suo indirizzo:<br><b>https://lucioros.github.io/Note/</b></div>
+                <div class="modal-actions"><button class="btn-cancel" type="button">Chiudi</button></div>`);
+            o.querySelector('.btn-cancel').onclick = () => o.remove();
+            return;
+        }
+        if (!gLinked()) {
+            let o = openModal(`<h3>📆 Collega Google Calendar</h3>
+                <div class="sync-text">Le attività con data diventano eventi del tuo Google Calendar. Se le modifichi o le elimini (qui o su Google), si aggiornano anche dall'altra parte, e ricevi le notifiche di Google anche ad app chiusa.</div>
+                <div class="sync-text">Al primo accesso Google dirà che <b>l'app non è verificata</b>: è normale per un'app personale, premi "Continua" e consenti l'accesso al calendario. Ogni dispositivo va collegato una volta, con lo stesso account Google.</div>
+                <div class="modal-actions">
+                    <button class="btn-cancel g-close" type="button">Annulla</button>
+                    <button class="btn-confirm g-go" type="button">Accedi con Google</button>
+                </div>`);
+            o.querySelector('.g-close').onclick = () => o.remove();
+            o.querySelector('.g-go').onclick = () => { o.remove(); gcalAuth(); };
+            return;
+        }
+        if (!gToken()) { gcalAuth(); return; }   // permesso scaduto: lo richiede subito (tocco dell'utente)
+        let last = Number(lsGet('spesaflow_glast')) || 0;
+        let o = openModal(`<h3>📆 Google Calendar</h3>
+            <div class="sync-status">${gError ? '⚠️ ' + esc(gError) : '✅ Collegato' + (last ? ` (ultimo allineamento: ${esc(fmtMoment(last))})` : '')}</div>
+            <div class="sync-text">Le modifiche passano da sole nei due sensi mentre l'app è aperta. Il permesso di Google dura circa un'ora: quando scade, il pulsante diventa "🔄 Aggiorna" e basta toccarlo.</div>
+            <div class="modal-actions">
+                <button class="btn-confirm g-now" type="button">🔄 Aggiorna ora</button>
+                <button class="btn-delete g-off" type="button">Scollega</button>
+            </div>
+            <div class="modal-actions"><button class="btn-cancel g-close" type="button">Chiudi</button></div>`);
+        o.querySelector('.g-now').onclick = () => { o.remove(); gcalReconcile(); };
+        o.querySelector('.g-off').onclick = () => {
+            if (!confirm('Scollegare Google Calendar da questo dispositivo? Gli eventi già creati restano su Google.')) return;
+            o.remove();
+            gcalDisconnect();
+        };
+        o.querySelector('.g-close').onclick = () => o.remove();
+    }
+    document.getElementById('gcalBtn').onclick = showGcalModal;
+
     // ---------- SCHEDE ----------
     function setTab(tab) {
-        let todo = tab === 'todo';
-        document.getElementById('viewSpesa').style.display = todo ? 'none' : '';
-        document.getElementById('viewTodo').style.display = todo ? '' : 'none';
-        document.getElementById('tabSpesa').classList.toggle('active', !todo);
-        document.getElementById('tabTodo').classList.toggle('active', todo);
-        if (todo) renderTodos();
-        lsSet('spesaflow_tab', todo ? 'todo' : 'spesa');
+        if (tab === 'todo') tab = 'cal';
+        if (!['spesa', 'cal'].includes(tab)) tab = 'spesa';
+        [['spesa', 'viewSpesa', 'tabSpesa'], ['cal', 'viewCal', 'tabCal']].forEach(([key, view, btn]) => {
+            document.getElementById(view).style.display = key === tab ? '' : 'none';
+            document.getElementById(btn).classList.toggle('active', key === tab);
+        });
+        if (tab !== 'spesa') renderTodos();   // aggiorna "Oggi" / "In ritardo" se è cambiato giorno
+        lsSet('spesaflow_tab', tab);
     }
     document.getElementById('tabSpesa').onclick = () => setTab('spesa');
-    document.getElementById('tabTodo').onclick = () => setTab('todo');
+    document.getElementById('tabCal').onclick = () => setTab('cal');
 
     // ---------- PULSANTI IN ALTO ----------
     document.getElementById('resetBtn').onclick = () => {
@@ -2584,6 +3260,7 @@
                 notes = p.notes;
                 cart = p.cart;
                 todos = p.todos;
+                gDeletes = p.gDeletes;
                 dataUpdatedAt = Number(p.updatedAt) || 0;
                 normalizeData();
                 loadUiState();
@@ -2604,13 +3281,16 @@
         syncNow();
         setInterval(() => { if (!document.hidden) syncNow(); }, 60000);
         window.addEventListener('online', syncNow);
-        setTab(lsGet('spesaflow_tab') === 'todo' ? 'todo' : 'spesa');
+        setTab(lsGet('spesaflow_tab'));
         renderBackupBanner();
         renderNotifyBtn();
+        renderGcalBtn();
+        gcalReconcile();
+        setInterval(() => { if (!document.hidden) gcalReconcile(); }, 120000);
         checkDue();
         setInterval(checkDue, 30000);
         document.addEventListener('visibilitychange', () => {
-            if (!document.hidden) { checkDue(); renderBackupBanner(); syncNow(); }
+            if (!document.hidden) { checkDue(); renderBackupBanner(); syncNow(); gcalReconcile(); }
         });
     })();
 </script>
